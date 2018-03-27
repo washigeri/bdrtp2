@@ -1,5 +1,10 @@
 import scalaj.http._
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
+import net.ruippeixotog.scalascraper.dsl.DSL._
+import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
+import net.ruippeixotog.scalascraper.dsl.DSL.Parse._
+import net.ruippeixotog.scalascraper.model._
+import net.ruippeixotog.scalascraper.scraper._
 
 object mainex1 {
 
@@ -12,6 +17,10 @@ object mainex1 {
     //println(response)
     val browser = JsoupBrowser()
     val doc = browser.parseString(response.body)
-    println(doc)
+    //println(doc)
+    val uls = doc >> elementList("#monster-index-wrapper")
+    var urls: List[String] = List()
+    urls = uls.map(_ >> attr("href")("a"))
+    print(urls)
   }
 }
