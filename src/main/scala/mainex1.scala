@@ -1,28 +1,43 @@
-import scalaj.http._
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
-import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
-import net.ruippeixotog.scalascraper.dsl.DSL.Parse._
+import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model._
-import net.ruippeixotog.scalascraper.scraper._
+
 
 object mainex1 {
 
-  val url = "http://paizo.com/pathfinderRPG/prd/bestiary/monsterIndex.html"
-  val url2 = "http://paizo.com/pathfinderRPG/prd/bestiary2/additionalMonsterIndex.html"
-  var url3 = "http://paizo.com/pathfinderRPG/prd/bestiary3/monsterIndex.html"
-  var url4 = "http://paizo.com/pathfinderRPG/prd/bestiary4/monsterIndex.html"
-  var url5="http://paizo.com/pathfinderRPG/prd/bestiary5/index.html"
+  val Root_URL = "http://paizo.com"
+  val Base_URL = "http://paizo.com/pathfinderRPG/prd/"
+  val Bestiaries = Array("bestiary/", "bestiary2/", "bestiary3/", "bestiary4/", "bestiary5/")
+  val Indexes = Array("monsterIndex.html", "additionalMonsterIndex.html", "monsterIndex.html", "monsterIndex.html", "index.html")
+  val Browser = JsoupBrowser()
+  val MaxIndex = 4
+
   def main(args: Array[String]): Unit = {
-    val request: HttpRequest = Http(url)
-    val response = request.asString
-    //println(response)
-    val browser = JsoupBrowser()
-    val doc = browser.parseString(response.body)
-    //println(doc)
-    val uls = doc >> elementList("#monster-index-wrapper")
-    var urls: List[String] = List()
-    urls = uls.map(_ >> attr("href")("a"))
-    print(urls)
+    val res = BuildURLList()
+    println(res)
+  }
+
+  def BuildURLList(): List[String] = {
+    var res: List[String] = List()
+    for (k <- 0 to MaxIndex) {
+      res = res ::: ParseIndexPage(k)
+    }
+    res = res.filter(_ contains "#")
+    res
+  }
+
+  def ParseIndexPage(id: Int): List[String] = {
+    val url = Base_URL + Bestiaries(id) + Indexes(id)
+    val doc = HTTPQuery(url = url)
+    val uls = doc >> elementList("#monster-index-wrapper ul a")
+    var res: List[String] = List()
+    res = uls.map(a => (if (id == 0) Base_URL + Bestiaries(id) else Root_URL) + (a >> attr("href")))
+    res
+  }
+
+  def HTTPQuery(url: String): Document = {
+    val res = Browser.get(url)
+    res
   }
 }
