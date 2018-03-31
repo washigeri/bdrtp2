@@ -15,7 +15,7 @@ object mainex1 {
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
-   // println(res)
+    println(res)
 
     for (k <- 0 to res.length-1) {
       getSortByURL(res(k));
@@ -53,6 +53,8 @@ object mainex1 {
 
         val tabspell=tabByCreature(k).split("/spells/");
         tabspell(0)="";
+        print("monster :"+name);
+       print("\n")
         for(y <- 0 to tabspell.length-1){
           print(tabspell(y).split(".html")(0));
           print("\n")
