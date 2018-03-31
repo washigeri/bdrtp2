@@ -2,7 +2,7 @@ import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model._
-
+import logic.creature;
 
 object mainex1 {
 
@@ -15,7 +15,11 @@ object mainex1 {
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
-    println(res)
+   // println(res)
+
+    for (k <- 0 to res.length-1) {
+      getSortByURL(res(k));
+    }
   }
 
   def BuildURLList(): List[String] = {
@@ -34,6 +38,28 @@ object mainex1 {
     var res: List[String] = List()
     res = uls.map(a => (if (id == 0) Base_URL + Bestiaries(id) else Root_URL) + (a >> attr("href")))
     res
+  }
+  def getSortByURL(url: String): Unit  = {
+    val res= HTTPQuery(url);
+    val array= url.split("#");
+    val name = array(1);
+    val tab= res.toString();
+    val tabByCreatureBody = tab.split("<div class=\"body\">" );
+
+    val tabByCreature= tabByCreatureBody(1).split("<h1");
+
+   for (k <- 0 to tabByCreature.length-1) {
+     if(tabByCreature(k).contains(name)){
+
+        val tabspell=tabByCreature(k).split("/spells/");
+        tabspell(0)="";
+        for(y <- 0 to tabspell.length-1){
+          print(tabspell(y).split(".html")(0));
+          print("\n")
+        }
+     }
+    }
+
   }
 
   def HTTPQuery(url: String): Document = {
