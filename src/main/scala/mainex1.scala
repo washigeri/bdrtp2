@@ -3,7 +3,8 @@ import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model._
 import logic.creature
-
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkConf
 import scala.collection.mutable.ListBuffer;
 
 object mainex1 {
@@ -17,12 +18,16 @@ object mainex1 {
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
+    val conf = new SparkConf().setAppName("getheal").setMaster("local[*]")
+    val sc = new SparkContext(conf)
     println(res)
     var listCreature: ListBuffer[creature] = ListBuffer()
     for (k <- 0 to res.length-1) {
       listCreature+= getSortByURL(res(k));
     }
-    print("test");
+    val heal=sc.parallelize(listCreature)
+    heal.map(i=>i.listspell);
+    print(heal);
   }
 
   def BuildURLList(): List[String] = {
