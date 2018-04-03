@@ -3,6 +3,7 @@ import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model._
 import logic.creature
+import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ListBuffer;
 
@@ -14,6 +15,7 @@ object mainex1 {
   val Indexes = Array("monsterIndex.html", "additionalMonsterIndex.html", "monsterIndex.html", "monsterIndex.html", "index.html")
   val Browser = JsoupBrowser()
   val MaxIndex = 4
+  val Conf : SparkConf = new SparkConf().setAppName("BDRTP2").setMaster("local[*]")
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
@@ -23,6 +25,11 @@ object mainex1 {
       listCreature+= getSortByURL(res(k));
     }
     print("test");
+    //println(res)
+    val monsters  = List()
+    val sc = new SparkContext(Conf)
+    sc.setLogLevel("ERROR")
+    val distMonsters = sc.parallelize(monsters)
   }
 
   def BuildURLList(): List[String] = {
