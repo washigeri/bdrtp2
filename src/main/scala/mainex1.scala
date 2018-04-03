@@ -1,11 +1,11 @@
+import logic.creature
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.model._
-import logic.creature
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.collection.mutable.ListBuffer;
+import scala.collection.mutable.ListBuffer
 
 object mainex1 {
 
@@ -19,17 +19,18 @@ object mainex1 {
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
-    println(res)
+    // println(res)
     var listCreature: ListBuffer[creature] = ListBuffer()
-    for (k <- 0 to res.length-1) {
-      listCreature+= getSortByURL(res(k));
+    for (k <- res.indices) {
+      listCreature += getSortByURL(res(k))
     }
-    print("test");
-    //println(res)
-    val monsters  = List()
     val sc = new SparkContext(Conf)
     sc.setLogLevel("ERROR")
-    val distMonsters = sc.parallelize(monsters)
+    val distMonsters = sc.parallelize(listCreature)
+    val pairs = distMonsters.flatMap(c => c.listspell.map(s => (s, c.name))).groupByKey()
+    pairs.saveAsTextFile("results")
+    //val rescluster = pairs.collect()
+    //println(rescluster)
   }
 
   def BuildURLList(): List[String] = {
@@ -49,33 +50,34 @@ object mainex1 {
     res = uls.map(a => (if (id == 0) Base_URL + Bestiaries(id) else Root_URL) + (a >> attr("href")))
     res
   }
-  def getSortByURL(url: String): creature  = {
-    val res= HTTPQuery(url);
-    val array= url.split("#");
-    val named = array(1);
-    val tab= res.toString();
-    val tabByCreatureBody = tab.split("<div class=\"body\">" );
 
-    val tabByCreature= tabByCreatureBody(1).split("<h1");
-    val creature = new creature(name=named);
-   for (k <- 0 to tabByCreature.length-1) {
-     if(tabByCreature(k).contains(named)){
+  def getSortByURL(url: String): creature = {
+    val res = HTTPQuery(url)
+    val array = url.split("#")
+    val named = array(1)
+    val tab = res.toString
+    val tabByCreatureBody = tab.split("<div class=\"body\">")
 
-        val tabspell=tabByCreature(k).split("/spells/");
-        tabspell(0)="";
-        print("monster :"+named);
+    val tabByCreature = tabByCreatureBody(1).split("<h1")
+    val creature = new creature(name = named)
+    for (k <- 0 until tabByCreature.length) {
+      if (tabByCreature(k).contains(named)) {
 
-       print("\n")
-        for(y <- 0 to tabspell.length-1){
+        val tabspell = tabByCreature(k).split("/spells/")
+        tabspell(0) = ""
+        //print("monster :" + named)
 
-          if( tabspell(y).split(".html")(0)!=""){
-            print(tabspell(y).split(".html")(0));
-            creature.listspell+= tabspell(y).split(".html")(0).toString();
-            print("\n")
+        //print("\n")
+        for (y <- 0 until tabspell.length) {
+
+          if (tabspell(y).split(".html")(0) != "") {
+            // print(tabspell(y).split(".html")(0))
+            creature.listspell += tabspell(y).split(".html")(0)
+            // print("\n")
           }
 
         }
-     }
+      }
     }
     creature
 
