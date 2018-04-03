@@ -6,6 +6,7 @@ import net.ruippeixotog.scalascraper.model._
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ListBuffer
+import scala.util.matching.Regex
 
 
 object mainex1 {
@@ -20,7 +21,8 @@ object mainex1 {
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
-
+    val pattern =  new Regex("(\\w+)\\s(\\d+)");
+    val pattern(words,num) = "asas1 11"
     // println(res)
     var listCreature: ListBuffer[creature] = ListBuffer()
     for (k <- res.indices) {
@@ -63,19 +65,28 @@ object mainex1 {
     val tabByCreature = tabByCreatureBody(1).split("<h1")
     val creature = new creature(name = named)
     for (k <- 0 until tabByCreature.length) {
-      if (tabByCreature(k).contains(named)) {
+      val id=tabByCreature(k).split("class");
+      if (id(0).trim().contains("id=\""+named+"\"")) {
 
         val tabspell = tabByCreature(k).split("/spells/")
         tabspell(0) = ""
-        //print("monster :" + named)
+        print("monster :" + named)
 
-        //print("\n")
+        print("\n")
         for (y <- 0 until tabspell.length) {
 
           if (tabspell(y).split(".html")(0) != "") {
-            // print(tabspell(y).split(".html")(0))
-            creature.listspell += tabspell(y).split(".html")(0)
-            // print("\n")
+
+            if(tabspell(y).split(".html")(0).contains("detectMagic#")){
+              val dm=tabspell(y).split(".html")(0).split("#");
+              print(dm(0))
+              creature.listspell+=dm(0);
+            }else{
+              print(tabspell(y).split(".html")(0))
+              creature.listspell += tabspell(y).split(".html")(0)
+            }
+
+             print("\n")
           }
 
         }
