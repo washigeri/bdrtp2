@@ -21,8 +21,7 @@ object mainex1 {
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
-    val pattern =  new Regex("(\\w+)\\s(\\d+)");
-    val pattern(words,num) = "asas1 11"
+   
     // println(res)
     var listCreature: ListBuffer[creature] = ListBuffer()
     for (k <- res.indices) {
