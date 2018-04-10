@@ -5,5 +5,5 @@ trait Monster {
   var Armor: Int
   var ListAction:List[String]
 
-  def action{}
+  def action
 }
