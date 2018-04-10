@@ -5,6 +5,7 @@ class Warlord extends Serializable with Monster {
   override var HP: Int = 141
   override var Armor: Int = 10
   override var ListAction: List[String] = List("move","ranged","melee")
+  override var Speed: Int = 30
 
   override def action(distance: Int): String = {
     if(distance > 40){
