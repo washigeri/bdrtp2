@@ -20,7 +20,7 @@ object mainex1 {
   val Indexes = Array("monsterIndex.html", "additionalMonsterIndex.html", "monsterIndex.html", "monsterIndex.html", "index.html")
   val Browser = JsoupBrowser()
   val MaxIndex = 4
-  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2").setMaster("local[*]")
+  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex1").setMaster("local[*]")
 
   def main(args: Array[String]): Unit = {
     val res = BuildURLList()
