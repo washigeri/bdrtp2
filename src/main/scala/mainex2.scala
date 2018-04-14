@@ -1,14 +1,13 @@
-import org.apache.spark.SparkConf
 import logic._
-import org.apache.spark.SparkContext
-import org.apache.spark.graphx.{Edge, EdgeContext, Graph, _}
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.graphx.Edge
 
 object mainex2 {
 
   val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("local[*]")
 
   def main(args: Array[String]): Unit = {
-    val sc = new SparkContext(Conf);
+    val sc = new SparkContext(Conf)
     var myVertices = sc.makeRDD(Array(
       (1L, new node(id = 1, monster = new Solar())), //A
       (2L, new node(id = 2, monster = new Worgrider())), //B
@@ -30,15 +29,15 @@ object mainex2 {
 
 
     var myEdges = sc.makeRDD(Array(
-      Edge(1L, 2L, "110"), Edge(1L, 3L, "110"), Edge(1L, 4L, "110"),
-      Edge(1L, 5L, "110"), Edge(1L, 6L, "110"),
-      Edge(1L, 7L, "110"), Edge(1L, 8L, "110"),
-      Edge(1L, 9L, "110"), Edge(1L, 10L, "110"),
-      Edge(1L, 11L, "110"), Edge(1L, 12L, "120"),
-      Edge(1L, 13L, "120"),
-      Edge(1L, 14L, "120"),
-      Edge(1L, 15L, "120"),
-      Edge(1L, 16L, "160")
+      Edge(1L, 2L, 110), Edge(1L, 3L, 110), Edge(1L, 4L, 110),
+      Edge(1L, 5L, 110), Edge(1L, 6L, 110),
+      Edge(1L, 7L, 110), Edge(1L, 8L, 110),
+      Edge(1L, 9L, 110), Edge(1L, 10L, 110),
+      Edge(1L, 11L, 110), Edge(1L, 12L, 120),
+      Edge(1L, 13L, 120),
+      Edge(1L, 14L, 120),
+      Edge(1L, 15L, 120),
+      Edge(1L, 16L, 160)
     ))
   }
 
