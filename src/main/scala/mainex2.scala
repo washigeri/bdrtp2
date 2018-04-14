@@ -1,6 +1,6 @@
 import logic._
+import org.apache.spark.graphx.{Edge, EdgeContext}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.graphx.Edge
 
 object mainex2 {
 
@@ -24,7 +24,7 @@ object mainex2 {
       (13L, new node(id = 13, monster = new BarbarianOrc)), //C
       (14L, new node(id = 14, monster = new BarbarianOrc)), //D
       (15L, new node(id = 15, monster = new BarbarianOrc)), //E
-      (16L, new node(id = 16, monster = new Warlord()))//F
+      (16L, new node(id = 16, monster = new Warlord())) //F
     )) //J
 
 
@@ -39,6 +39,12 @@ object mainex2 {
       Edge(1L, 15L, 120),
       Edge(1L, 16L, 160)
     ))
+  }
+
+
+  def sendActions(ctx: EdgeContext[node, Int, String]): Unit = {
+    ctx.sendToDst(ctx.srcAttr.monster.action(ctx.attr))
+    ctx.sendToSrc(ctx.dstAttr.monster.action(ctx.attr))
   }
 
 }
