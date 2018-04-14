@@ -12,14 +12,14 @@ class Solar extends Serializable with Monster {
 
   override def action(distance: Int): String = {
     if (distance <= 110 && distance > 0) {
-      ListAction(1)
+     return ListAction(1)
     }
     if (distance == 0) {
-      ListAction(2)
+      return ListAction(2)
     }
     if (HP <= 100) {
-      ListAction(3)
+     return ListAction(3)
     }
-    ListAction.head
+    return ListAction.head
   }
 }

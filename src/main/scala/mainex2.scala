@@ -49,7 +49,7 @@ object mainex2 {
       counter += 1
 
       val messages = myGraph.aggregateMessages[Long](
-        sendTieBreakValues,
+        sendActions,
         selectBest,
         fields //use an optimized join strategy (we don't need the edge attribute)
       )
