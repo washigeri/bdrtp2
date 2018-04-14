@@ -5,6 +5,12 @@ class Worgrider extends Serializable with Monster {
   override var Armor: Int = 18
   override var Speed: Int = 20
   override var ListAction: List[String] = List("move", "melee")
+  override var damageMelee: Damage = Damage(1, 8, 2)
+
+  MeleeAtckChance = List(6)
+  MeleeAtckCount = 1
+  RangedAtckCount = 0
+  override var damageRanged: Damage = _
 
   override def action(distance: Int): String = {
     if (distance == 0) {

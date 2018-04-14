@@ -58,6 +58,11 @@ object mainex1 {
     res
   }
 
+  def HTTPQuery(url: String): Document = {
+    val res = Browser.get(url)
+    res
+  }
+
   def getSortByURL(url: String): creature = {
     val res = HTTPQuery(url)
     val array = url.split("#")
@@ -90,11 +95,6 @@ object mainex1 {
     }
     creature
 
-  }
-
-  def HTTPQuery(url: String): Document = {
-    val res = Browser.get(url)
-    res
   }
 
   def DeleteDirectory(path: String): Unit = {

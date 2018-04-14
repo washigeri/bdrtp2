@@ -1,5 +1,5 @@
 import logic._
-import org.apache.spark.graphx.{Edge, EdgeContext}
+import org.apache.spark.graphx.{Edge, EdgeContext, Graph}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.graphx.{Edge, Graph}
 
@@ -41,37 +41,23 @@ object mainex2 {
       Edge(1L, 15L, 120),
       Edge(1L, 16L, 160)
     ))
+
+
     var myGraph = Graph(myVertices, myEdges)
-    var counter=0;
-    while (true) {
+    var messages = myGraph.aggregateMessages[String](sendActions, MergeActions)
+    var res = messages.collect()
+    println("fini")
 
-      println("Tour : " + (counter + 1))
-      counter += 1
-
-      val messages = myGraph.aggregateMessages[Long](
-        sendActions,
-        selectBest,
-        fields //use an optimized join strategy (we don't need the edge attribute)
-      )
-
-      if (messages.isEmpty()) return
-
-      myGraph = myGraph.joinVertices(messages)(
-        (vid, sommet, bestId) => increaseColor(vid, sommet, bestId))
-
-      //Ignorez : Code de debug
-      var printedGraph = myGraph.vertices.collect()
-      printedGraph = printedGraph.sortBy(_._1)
-      printedGraph.foreach(
-        elem => println(elem._2)
-      )
-    }
   }
 
 
   def sendActions(ctx: EdgeContext[node, Int, String]): Unit = {
-    ctx.sendToDst(ctx.srcAttr.monster.action(ctx.attr))
-    ctx.sendToSrc(ctx.dstAttr.monster.action(ctx.attr))
+    ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.srcAttr.monster.action(ctx.attr))
+    ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.dstAttr.monster.action(ctx.attr))
+  }
+
+  def MergeActions(msg1: String, msg2: String): String = {
+    msg1 + ";" + msg2
   }
 
 }
