@@ -8,14 +8,14 @@ class Warlord extends Serializable with Monster {
   override var Speed: Int = 30
 
   override def action(distance: Int): String = {
-    if(distance > 40){
-      ListAction(0)
-    }
     if(distance < 40 && distance > 0){
       ListAction(1)
     }
-    if(distance == 0){
+    else if (distance == 0) {
       ListAction(2)
+    }
+    else {
+      ListAction.head
     }
   }
 
