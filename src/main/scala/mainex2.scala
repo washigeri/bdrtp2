@@ -1,5 +1,5 @@
 import logic._
-import org.apache.spark.graphx.{Edge, EdgeContext}
+import org.apache.spark.graphx.{Edge, EdgeContext, Graph}
 import org.apache.spark.{SparkConf, SparkContext}
 
 object mainex2 {
@@ -39,12 +39,21 @@ object mainex2 {
       Edge(1L, 15L, 120),
       Edge(1L, 16L, 160)
     ))
+
+    var myGraph = Graph(myVertices, myEdges)
+    var messages = myGraph.aggregateMessages[String](sendActions, MergeActions)
+    var res = messages.collect()
+    println("fini")
   }
 
 
   def sendActions(ctx: EdgeContext[node, Int, String]): Unit = {
-    ctx.sendToDst(ctx.srcAttr.monster.action(ctx.attr))
-    ctx.sendToSrc(ctx.dstAttr.monster.action(ctx.attr))
+    ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.srcAttr.monster.action(ctx.attr))
+    ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.dstAttr.monster.action(ctx.attr))
+  }
+
+  def MergeActions(msg1: String, msg2: String): String = {
+    msg1 + ";" + msg2
   }
 
 }
