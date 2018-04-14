@@ -40,6 +40,7 @@ object mainex2 {
       Edge(1L, 15L, "120"),
       Edge(1L, 16L, "160")
     ))
+    var myGraph = Graph(myVertices, myEdges)
   }
 
 }
