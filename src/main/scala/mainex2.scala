@@ -1,6 +1,6 @@
 import logic._
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.graphx.Edge
+import org.apache.spark.graphx.{Edge, Graph}
 
 object mainex2 {
 
@@ -40,6 +40,30 @@ object mainex2 {
       Edge(1L, 16L, 160)
     ))
     var myGraph = Graph(myVertices, myEdges)
+    var counter=0;
+    while (true) {
+
+      println("Tour : " + (counter + 1))
+      counter += 1
+
+      val messages = myGraph.aggregateMessages[Long](
+        sendTieBreakValues,
+        selectBest,
+        fields //use an optimized join strategy (we don't need the edge attribute)
+      )
+
+      if (messages.isEmpty()) return
+
+      myGraph = myGraph.joinVertices(messages)(
+        (vid, sommet, bestId) => increaseColor(vid, sommet, bestId))
+
+      //Ignorez : Code de debug
+      var printedGraph = myGraph.vertices.collect()
+      printedGraph = printedGraph.sortBy(_._1)
+      printedGraph.foreach(
+        elem => println(elem._2)
+      )
+    }
   }
 
 }
