@@ -17,22 +17,43 @@ trait Monster {
   var RangedAtckChance: List[Int] = List()
   var damageMelee: Damage
   var damageRanged: Damage
-  var position : Position
+  var position: Position
 
-  def action(distance: Int): String
-  def getDistance(monster: Monster, monster2: Monster): Double ={
-    return scala.math.sqrt((monster2.position.x-monster.position.x)*(monster2.position.x-monster.position.x)+(monster2.position.x-monster.position.y)*(monster2.position.x-monster.position.y))
+  def action(distance: Double): String
+
+  def move(monster: Monster): Unit = {
+    val distance = this.getDistance(monster)
+    if (distance <= this.Speed) {
+      this.position.setPosition(monster.position.x, monster.position.y)
+    }
+    else {
+      val x = this.position.x
+      val y = this.position.y
+      this.position.setPosition(this.position.x - x, this.position.y - y)
+      monster.position.setPosition(monster.position.x - x, monster.position.y - y)
+      val rapport = distance / Speed
+      val xproj = monster.position.x / rapport
+      val yproj = monster.position.y / rapport
+      this.position.setPosition(this.position.x + x, this.position.y + y)
+      monster.position.setPosition(monster.position.x + x, monster.position.y + y)
+      this.position.setPosition(this.position.x + xproj, this.position.y + yproj)
+    }
   }
 
-  def move(monster: Monster) :  Monster
+  def getDistance(monster2: Monster): Double = {
+    val monster = this
+    scala.math.sqrt((monster2.position.x - monster.position.x) * (monster2.position.x - monster.position.x) + (monster2.position.x - monster.position.y) * (monster2.position.x - monster.position.y))
+  }
+
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) {
 
     def roll(): Int = {
       var res = baseDmg
-      for (i <- 1 to nbdice) {
+      for (_ <- 1 to nbdice) {
         res += 1 + Random.nextInt(diceSize)
       }
       res
     }
   }
+
 }

@@ -1,6 +1,6 @@
 package logic
 
-class Worgrider extends Serializable with Monster {
+class Worgrider(val x: Double, val y: Double) extends Serializable with Monster {
   override var HP: Int = 13
   override var Armor: Int = 18
   override var Speed: Int = 20
@@ -11,8 +11,9 @@ class Worgrider extends Serializable with Monster {
   MeleeAtckCount = 1
   RangedAtckCount = 0
   override var damageRanged: Damage = _
+  override var position: Position = new Position(x, y)
 
-  override def action(distance: Int): String = {
+  override def action(distance: Double): String = {
     if (distance == 0) {
       ListAction(1)
     }

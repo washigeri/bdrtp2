@@ -1,6 +1,6 @@
 package logic
 
-class Warlord extends Serializable with Monster {
+class Warlord(val x: Double, val y: Double) extends Serializable with Monster {
 
   override var HP: Int = 141
   override var Armor: Int = 10
@@ -13,8 +13,9 @@ class Warlord extends Serializable with Monster {
   MeleeAtckChance = List(20, 15, 10).map(_ + 1)
   RangedAtckChance = List(19)
   override var damageRanged: Damage = Damage(1, 6, 5)
+  override var position: Position = new Position(x, y)
 
-  override def action(distance: Int): String = {
+  override def action(distance: Double): String = {
     if (distance < 40 && distance > 0) {
       ListAction(1)
     }
