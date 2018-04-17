@@ -1,5 +1,5 @@
 import logic._
-import org.apache.spark.graphx.{Edge, EdgeContext, Graph}
+import org.apache.spark.graphx.{Edge, EdgeContext, Graph, VertexId}
 import org.apache.spark.{SparkConf, SparkContext}
 
 
@@ -50,16 +50,21 @@ object mainex2 {
 
   def execute(g: Graph[node, EdgeProperty], sc: SparkContext): Unit = {
     var counter = 1
-
+    var myGraph = g
     def loop1(): Unit = {
       while (true) {
         println("Tour " + counter)
         counter += 1
-        val messages = g.aggregateMessages[String](sendActions, MergeActions)
-        val res = messages.collect()
-        println("fini")
-        println(res)
-        return
+        val messages = myGraph.aggregateMessages[String](sendActions, MergeActions)
+        if (messages.isEmpty())
+          return
+        //val res = messages.collect()
+        //println("fini")
+        //println(res)
+        myGraph = myGraph.joinVertices(messages)(
+          (vid, sommet, message) => ChooseAction(vid, sommet, message)
+        )
+        //return
       }
     }
 
@@ -68,13 +73,19 @@ object mainex2 {
 
 
   def sendActions(ctx: EdgeContext[node, EdgeProperty, String]): Unit = {
-    val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-    ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.srcAttr.monster.action(distance))
-    ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.dstAttr.monster.action(distance))
+    if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
+      val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
+      ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.srcAttr.monster.action(distance))
+      ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.dstAttr.monster.action(distance))
+    }
   }
 
   def MergeActions(msg1: String, msg2: String): String = {
     msg1 + ";" + msg2
+  }
+
+  def ChooseAction(vid: VertexId, sommet: node, message: String): node = {
+
   }
 
 }
