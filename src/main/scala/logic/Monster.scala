@@ -17,10 +17,14 @@ trait Monster {
   var RangedAtckChance: List[Int] = List()
   var damageMelee: Damage
   var damageRanged: Damage
-
+  var position : Position
 
   def action(distance: Int): String
+  def getDistance(monster: Monster, monster2: Monster): Double ={
+    return scala.math.sqrt((monster2.position.x-monster.position.x)*(monster2.position.x-monster.position.x)+(monster2.position.x-monster.position.y)*(monster2.position.x-monster.position.y))
+  }
 
+  def move(monster: Monster) :  Monster
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) {
 
     def roll(): Int = {
