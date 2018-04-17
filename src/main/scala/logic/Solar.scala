@@ -19,6 +19,7 @@ class Solar(val x: Double, val y: Double) extends Serializable with Monster {
   override var position: Position = new Position(x, y)
 
   override def action(distance: Double): String = {
+    //println("distance " + distance)
     if (distance <= 110 && distance > 0) {
 
       return ListAction(1)

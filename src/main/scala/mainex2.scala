@@ -69,8 +69,8 @@ object mainex2 {
 
   def sendActions(ctx: EdgeContext[node, EdgeProperty, String]): Unit = {
     val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-    ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.srcAttr.monster.action(distance))
-    ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.dstAttr.monster.action(distance))
+    ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.srcAttr.monster.action(distance))
+    ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.dstAttr.monster.action(distance))
   }
 
   def MergeActions(msg1: String, msg2: String): String = {

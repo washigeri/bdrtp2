@@ -42,7 +42,7 @@ trait Monster {
 
   def getDistance(monster2: Monster): Double = {
     val monster = this
-    scala.math.sqrt((monster2.position.x - monster.position.x) * (monster2.position.x - monster.position.x) + (monster2.position.x - monster.position.y) * (monster2.position.x - monster.position.y))
+    scala.math.sqrt((monster2.position.x - monster.position.x) * (monster2.position.x - monster.position.x) + (monster2.position.y - monster.position.y) * (monster2.position.y - monster.position.y))
   }
 
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) {
