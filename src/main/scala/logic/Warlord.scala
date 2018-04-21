@@ -1,10 +1,13 @@
 package logic
 
-class Warlord(val x: Double, val y: Double) extends Serializable with Monster {
+import logic.MessageTypeEnum.MessageTypeEnum
+
+class Warlord(x: Double, y: Double) extends Serializable with Monster {
+
 
   override var HP: Int = 141
   override var Armor: Int = 10
-  override var ListAction: List[String] = List("move", "ranged", "melee")
+  override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MELEE)
   override var Speed: Int = 30
   override var damageMelee: Damage = Damage(1, 8, 20)
 
@@ -15,7 +18,7 @@ class Warlord(val x: Double, val y: Double) extends Serializable with Monster {
   override var damageRanged: Damage = Damage(1, 6, 5)
   override var position: Position = new Position(x, y)
 
-  override def action(distance: Double): String = {
+  override def action(distance: Double): MessageTypeEnum = {
     if (distance < 40 && distance > 0) {
       ListAction(1)
     }

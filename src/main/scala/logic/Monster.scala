@@ -1,12 +1,14 @@
 package logic
 
+import logic.MessageTypeEnum.MessageTypeEnum
+
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 trait Monster {
-
   var HP: Int
   var Armor: Int
-  var ListAction: List[String]
+  var ListAction: List[MessageTypeEnum]
   var Speed: Int
   var Regeneration: Int = 0
   var DistanceMoved: Int = 0
@@ -19,7 +21,9 @@ trait Monster {
   var damageRanged: Damage
   var position: Position
 
-  def action(distance: Double): String
+  var action: ArrayBuffer[Message] = _
+
+  def action(distance: Double): MessageTypeEnum
 
   def move(monster: Monster): Unit = {
     val distance = this.getDistance(monster)
@@ -43,6 +47,10 @@ trait Monster {
   def getDistance(monster2: Monster): Double = {
     val monster = this
     scala.math.sqrt((monster2.position.x - monster.position.x) * (monster2.position.x - monster.position.x) + (monster2.position.y - monster.position.y) * (monster2.position.y - monster.position.y))
+  }
+
+  def removeHP(damage: Int): Unit = {
+    this.HP -= damage
   }
 
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) {
