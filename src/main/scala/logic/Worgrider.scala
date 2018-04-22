@@ -1,10 +1,13 @@
 package logic
 
-class Worgrider(val x: Double, val y: Double) extends Serializable with Monster {
+import logic.MessageTypeEnum.MessageTypeEnum
+
+class Worgrider(x: Double, y: Double) extends Serializable with Monster {
+
   override var HP: Int = 13
   override var Armor: Int = 18
   override var Speed: Int = 20
-  override var ListAction: List[String] = List("move", "melee")
+  override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.MELEE)
   override var damageMelee: Damage = Damage(1, 8, 2)
 
   MeleeAtckChance = List(6)
@@ -13,7 +16,7 @@ class Worgrider(val x: Double, val y: Double) extends Serializable with Monster 
   override var damageRanged: Damage = _
   override var position: Position = new Position(x, y)
 
-  override def action(distance: Double): String = {
+  override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
       ListAction(1)
     }

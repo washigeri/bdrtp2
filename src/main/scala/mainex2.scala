@@ -2,6 +2,8 @@ import logic._
 import org.apache.spark.graphx.{Edge, EdgeContext, Graph, VertexId}
 import org.apache.spark.{SparkConf, SparkContext}
 
+import scala.collection.mutable.ArrayBuffer
+
 
 object mainex2 {
 
@@ -10,12 +12,12 @@ object mainex2 {
   def main(args: Array[String]): Unit = {
     val sc = new SparkContext(Conf)
     val myVertices = sc.makeRDD(Array(
-      (1L, new node(id = 1, monster = new Solar(0, 5))), //A
-      (2L, new node(id = 2, monster = new Worgrider(110, 0))), //B
-      (3L, new node(id = 3, monster = new Worgrider(110, 5))), //C
-      (4L, new node(id = 4, monster = new Worgrider(110, 10))), //D
-      (5L, new node(id = 5, monster = new Worgrider(110, 20))), //E
-      (6L, new node(id = 6, monster = new Worgrider(110, 30))), //F
+      (1L, new node(id = 1, new Solar(0, 5))), //A
+      (2L, new node(id = 2, new Worgrider(110, 0))), //B
+      (3L, new node(id = 3, new Worgrider(110, 5))), //C
+      (4L, new node(id = 4, new Worgrider(110, 10))), //D
+      (5L, new node(id = 5, new Worgrider(110, 20))), //E
+      (6L, new node(id = 6, new Worgrider(110, 30))), //F
       (7L, new node(id = 7, monster = new Worgrider(110, 40))), //G
       (8L, new node(id = 8, monster = new Worgrider(110, 50))), //H
       (9L, new node(id = 9, monster = new Worgrider(110, 60))), //I
@@ -51,20 +53,37 @@ object mainex2 {
   def execute(g: Graph[node, EdgeProperty], sc: SparkContext): Unit = {
     var counter = 1
     var myGraph = g
+
     def loop1(): Unit = {
       while (true) {
         println("Tour " + counter)
         counter += 1
-        val messages = myGraph.aggregateMessages[String](sendActions, MergeActions)
+        val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
         if (messages.isEmpty())
           return
-        //val res = messages.collect()
+        // val res = messages.collect()
         //println("fini")
         //println(res)
-       /* myGraph = myGraph.joinVertices(messages)(
+       myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction(vid, sommet, message)
-        )*/
-        //return
+
+        )
+        //var res = myGraph.vertices.collect()
+        //println(res)
+
+        val messages2 = myGraph.aggregateMessages[ArrayBuffer[Message]](
+          sendActionsToApply,
+          MergeActions
+        )
+        //val res2 = messages2.collect()
+        //println(messages2)
+        myGraph = myGraph.joinVertices(messages2)(
+          (vid, sommet, message) => ApplyAction(vid, sommet, message)
+        )
+
+        //res = myGraph.vertices.collect()
+        //println(res)
+        return
       }
     }
 
@@ -72,20 +91,70 @@ object mainex2 {
   }
 
 
-  def sendActions(ctx: EdgeContext[node, EdgeProperty, String]): Unit = {
+  def sendActions(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
       val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-      ctx.sendToSrc(ctx.dstAttr.monster.getClass.getSimpleName + ctx.dstAttr.id + " " + ctx.srcAttr.monster.action(distance))
-      ctx.sendToDst(ctx.srcAttr.monster.getClass.getSimpleName + ctx.srcAttr.id + " " + ctx.dstAttr.monster.action(distance))
+      val message1 = new Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
+      val message2 = new Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
+      ctx.sendToSrc(ArrayBuffer(message1))
+      ctx.sendToDst(ArrayBuffer(message2))
     }
   }
 
-  def MergeActions(msg1: String, msg2: String): String = {
-    msg1 + ";" + msg2
+
+  def sendActionsToApply(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
+    //if(ctx.srcAttr.id == 1 || ctx.dstAttr.id == 1){
+    //  println("solar")
+    //}
+    for (action <- ctx.srcAttr.monster.action) {
+      if (action.typem == MessageTypeEnum.MOVE) {
+        if (ctx.dstAttr.id == action.dstid) {
+          ctx.sendToSrc(ArrayBuffer(action))
+        }
+      }
+      else {
+        ctx.sendToDst(ArrayBuffer(action))
+      }
+    }
+    for (actiondst <- ctx.dstAttr.monster.action) {
+      if (actiondst.typem == MessageTypeEnum.MOVE) {
+        if (ctx.srcAttr.id == actiondst.dstid) {
+          ctx.sendToDst(ArrayBuffer(actiondst))
+        }
+      }
+      else {
+        ctx.sendToSrc(ArrayBuffer(actiondst))
+      }
+    }
   }
 
-  /*def ChooseAction(vid: VertexId, sommet: node, message: String): node = {
+  def MergeActions(msg1: ArrayBuffer[Message], msg2: ArrayBuffer[Message]): ArrayBuffer[Message] = {
+    msg1 ++ msg2
+  }
+
+
+  def ChooseAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
+    sommet.monster.action = ArrayBuffer(message(0))
+    new node(sommet.id, sommet.monster)
 
   }
-*/
+
+  def ApplyAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
+    if (sommet.id == 1) {
+      println("solar")
+    }
+    val monster: Monster = sommet.monster
+    for (action <- message) {
+      action.typem match {
+        case MessageTypeEnum.MOVE => monster.move(action.dest)
+        case MessageTypeEnum.HEAL =>
+        case _ => monster.removeHP(action.value)
+      }
+    }
+    if (sommet.monster.HP > 0) {
+      monster.HP += monster.Regeneration
+    }
+    new node(sommet.id, monster)
+  }
+
 }

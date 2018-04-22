@@ -1,12 +1,14 @@
 package logic
 
+import logic.MessageTypeEnum.MessageTypeEnum
+
 /**
   * Created by oxeyo on 10/04/2018.
   */
-class Solar(val x: Double, val y: Double) extends Serializable with Monster {
+class Solar(x: Double, y: Double) extends Serializable with Monster {
   override var HP: Int = 363
   override var Armor: Int = 14
-  override var ListAction: List[String] = List("move", "ranged", "melee", "heal")
+  override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MOVE, MessageTypeEnum.MELEE)
   override var Speed: Int = 50
   Regeneration = 15
   override var damageMelee: Damage = Damage(3, 6, 18)
@@ -18,7 +20,7 @@ class Solar(val x: Double, val y: Double) extends Serializable with Monster {
   override var damageRanged: Damage = Damage(2, 6, 14)
   override var position: Position = new Position(x, y)
 
-  override def action(distance: Double): String = {
+  override def action(distance: Double): MessageTypeEnum = {
     //println("distance " + distance)
     if (distance <= 110 && distance > 0) {
 
@@ -33,6 +35,6 @@ class Solar(val x: Double, val y: Double) extends Serializable with Monster {
       return ListAction(3)
 
     }
-    return ListAction.head
+    ListAction.head
   }
 }
