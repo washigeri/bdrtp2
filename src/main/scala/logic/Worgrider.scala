@@ -23,4 +23,6 @@ class Worgrider(x: Double, y: Double) extends Serializable with Monster {
     else
       ListAction.head
   }
+
+  override var maxHp: Int = 13
 }

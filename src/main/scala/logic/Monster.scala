@@ -12,7 +12,7 @@ trait Monster {
   var Speed: Int
   var Regeneration: Int = 0
   var DistanceMoved: Int = 0
-
+  var maxHp:Int
   var MeleeAtckCount: Int = 0
   var RangedAtckCount: Int = 0
   var MeleeAtckChance: List[Int] = List()
@@ -21,7 +21,7 @@ trait Monster {
   var damageRanged: Damage
   var position: Position
 
-  var action: ArrayBuffer[Message] = _
+  var action: ArrayBuffer[Message] =ArrayBuffer[Message]()
 
   def action(distance: Double): MessageTypeEnum
 
@@ -53,7 +53,7 @@ trait Monster {
     this.HP -= damage
   }
 
-  case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) {
+  case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable{
 
     def roll(): Int = {
       var res = baseDmg

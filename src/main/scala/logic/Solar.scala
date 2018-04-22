@@ -37,4 +37,6 @@ class Solar(x: Double, y: Double) extends Serializable with Monster {
     }
     ListAction.head
   }
+
+  override var maxHp: Int = 363
 }

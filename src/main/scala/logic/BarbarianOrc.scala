@@ -26,4 +26,6 @@ class BarbarianOrc(x: Double, y: Double) extends Serializable with Monster {
     else
       ListAction(1)
   }
+
+  override var maxHp: Int = 142
 }

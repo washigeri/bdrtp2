@@ -3,6 +3,7 @@ import org.apache.spark.graphx.{Edge, EdgeContext, Graph, VertexId}
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 
 
 object mainex2 {
@@ -59,8 +60,11 @@ object mainex2 {
         println("Tour " + counter)
         counter += 1
         val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
-        if (messages.isEmpty())
+        if (messages.isEmpty()){
+          println("fini")
           return
+        }
+
         // val res = messages.collect()
         //println("fini")
         //println(res)
@@ -68,22 +72,22 @@ object mainex2 {
           (vid, sommet, message) => ChooseAction(vid, sommet, message)
 
         )
-        //var res = myGraph.vertices.collect()
-        //println(res)
-
+     /* var res = myGraph.vertices.collect()
+        println(res)
+*/
         val messages2 = myGraph.aggregateMessages[ArrayBuffer[Message]](
           sendActionsToApply,
           MergeActions
         )
-        //val res2 = messages2.collect()
-        //println(messages2)
+        /*val res2 = messages2.collect()
+        println(messages2)*/
         myGraph = myGraph.joinVertices(messages2)(
           (vid, sommet, message) => ApplyAction(vid, sommet, message)
         )
 
-        //res = myGraph.vertices.collect()
-        //println(res)
-        return
+       /* val res = myGraph.vertices.collect()
+        println(res)*/
+        //return
       }
     }
 
@@ -106,24 +110,26 @@ object mainex2 {
     //if(ctx.srcAttr.id == 1 || ctx.dstAttr.id == 1){
     //  println("solar")
     //}
-    for (action <- ctx.srcAttr.monster.action) {
-      if (action.typem == MessageTypeEnum.MOVE) {
-        if (ctx.dstAttr.id == action.dstid) {
-          ctx.sendToSrc(ArrayBuffer(action))
+    if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
+      for (action <- ctx.srcAttr.monster.action) {
+        if (action.typem == MessageTypeEnum.MOVE) {
+          if (ctx.dstAttr.id == action.dstid) {
+            ctx.sendToSrc(ArrayBuffer(action))
+          }
+        }
+        else {
+          ctx.sendToDst(ArrayBuffer(action))
         }
       }
-      else {
-        ctx.sendToDst(ArrayBuffer(action))
-      }
-    }
-    for (actiondst <- ctx.dstAttr.monster.action) {
-      if (actiondst.typem == MessageTypeEnum.MOVE) {
-        if (ctx.srcAttr.id == actiondst.dstid) {
-          ctx.sendToDst(ArrayBuffer(actiondst))
+      for (actiondst <- ctx.dstAttr.monster.action) {
+        if (actiondst.typem == MessageTypeEnum.MOVE) {
+          if (ctx.srcAttr.id == actiondst.dstid) {
+            ctx.sendToDst(ArrayBuffer(actiondst))
+          }
         }
-      }
-      else {
-        ctx.sendToSrc(ArrayBuffer(actiondst))
+        else {
+          ctx.sendToSrc(ArrayBuffer(actiondst))
+        }
       }
     }
   }
@@ -134,7 +140,50 @@ object mainex2 {
 
 
   def ChooseAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
-    sommet.monster.action = ArrayBuffer(message(0))
+  if(sommet.id==1){
+    println("solar");
+  }
+    var moveBuffer = ArrayBuffer[Message]();
+    for(action <- message){
+      if(action.typem==MessageTypeEnum.MELEE){
+        if(sommet.monster.action.size < sommet.monster.MeleeAtckCount){
+          if(Random.nextInt(20)+sommet.monster.MeleeAtckChance(sommet.monster.action.size)>=action.dest.Armor){
+            action.value= sommet.monster.damageMelee.roll();
+          }else{
+            action.value= 0
+          }
+
+          sommet.monster.action=sommet.monster.action ++ ArrayBuffer(action);
+        }
+      }
+      if(action.typem==MessageTypeEnum.RANGED){
+        if(sommet.monster.action.size < sommet.monster.MeleeAtckCount){
+          if(Random.nextInt(20)+sommet.monster.RangedAtckChance(sommet.monster.action.size)>=action.dest.Armor){
+            action.value=sommet.monster.damageRanged.roll();
+          }else{
+            action.value=0;
+          }
+
+          sommet.monster.action=sommet.monster.action ++ ArrayBuffer(action);
+        }
+      }
+      if(action.typem==MessageTypeEnum.HEAL){
+        sommet.monster.action=ArrayBuffer(action);
+        return  new node(sommet.id, sommet.monster)
+      }
+      if(action.typem==MessageTypeEnum.MOVE){
+      moveBuffer= moveBuffer++ArrayBuffer[Message](action);
+      }
+    }
+    if(sommet.monster.action.size==0){
+      sommet.monster.action=ArrayBuffer(moveBuffer(0));
+      for(action2<-moveBuffer){
+          if(sommet.monster.getDistance(sommet.monster.action(0).dest)>sommet.monster.getDistance(action2.dest)){
+            sommet.monster.action=ArrayBuffer(action2);
+          }
+      }
+    }
+
     new node(sommet.id, sommet.monster)
 
   }
@@ -146,14 +195,28 @@ object mainex2 {
     val monster: Monster = sommet.monster
     for (action <- message) {
       action.typem match {
-        case MessageTypeEnum.MOVE => monster.move(action.dest)
+        case MessageTypeEnum.MOVE => monster.move(action.dest); println("monstre"+ monster.getClass.getName + sommet.id+ "avance vers "+ action.dstid)
         case MessageTypeEnum.HEAL =>
-        case _ => monster.removeHP(action.value)
+        case _ =>{
+          if(action.value==0){
+            println("monstre"+ monster.getClass.getName + sommet.id +"ESQUIVE")
+          }else{
+            monster.removeHP(action.value);
+            println("monstre"+ monster.getClass.getName + sommet.id +"se fait attaquer a "+action.typem +" de "+ action.value)
+          }
+
+        }
       }
     }
-    if (sommet.monster.HP > 0) {
+    if (sommet.monster.HP > 0 && sommet.monster.HP < sommet.monster.maxHp) {
       monster.HP += monster.Regeneration
     }
+    if(sommet.monster.HP<=0){
+      println("---------------------------------MONSTER--------------------")
+      println(monster.getClass.getName +" " +sommet.id +" "+"est mort")
+      println("---------------------------------MONSTER--------------------")
+    }
+    monster.action = ArrayBuffer[Message]();
     new node(sommet.id, monster)
   }
 
