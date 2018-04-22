@@ -61,9 +61,9 @@ object mainex2 {
         //val res = messages.collect()
         //println("fini")
         //println(res)
-        myGraph = myGraph.joinVertices(messages)(
+       /* myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction(vid, sommet, message)
-        )
+        )*/
         //return
       }
     }
@@ -84,8 +84,8 @@ object mainex2 {
     msg1 + ";" + msg2
   }
 
-  def ChooseAction(vid: VertexId, sommet: node, message: String): node = {
+  /*def ChooseAction(vid: VertexId, sommet: node, message: String): node = {
 
   }
-
+*/
 }

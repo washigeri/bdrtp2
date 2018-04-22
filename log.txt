@@ -1,0 +1,4 @@
+INFO I'm Info message
+WARN I'm a Warn message
+INFO I'm another Info message
+INFO I'm another Info message
