@@ -66,10 +66,11 @@ trait Monster {
 
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable{
 
-    def roll(): Int = {
+    def roll(random: Random): Int = {
+
       var res = baseDmg
       for (_ <- 1 to nbdice) {
-        res += 1 + Random.nextInt(diceSize)
+        res += 1 + random.nextInt(diceSize)
       }
       res
     }

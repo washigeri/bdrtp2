@@ -125,14 +125,14 @@ object mainex2 {
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
       if (ctx.attr.getRelation == RelationType.ENEMY) {
         val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-        val message1 = new Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
-        val message2 = new Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
+        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
+        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
         ctx.sendToSrc(ArrayBuffer(message1))
         ctx.sendToDst(ArrayBuffer(message2))
       }
       else {
         if (ctx.srcAttr.monster.shouldHeal(ctx.dstAttr.monster)) {
-          val message = new Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, MessageTypeEnum.HEAL)
+          val message = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, MessageTypeEnum.HEAL)
           ctx.sendToSrc(ArrayBuffer(message))
         }
       }
@@ -173,6 +173,7 @@ object mainex2 {
   }
 
   def ChooseAction2(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
+    val random = new Random()
     var meleeTargets = ArrayBuffer[Message]()
     var rangedTargets = ArrayBuffer[Message]()
     var moveTargets = ArrayBuffer[Message]()
@@ -207,8 +208,9 @@ object mainex2 {
     for (melee <- meleeTargets if mcount < sommet.monster.MeleeAtckCount if atkCount < maxAttacks) {
       hp = melee.dest.HP
       for (i <- 0 until sommet.monster.MeleeAtckCount if continueOnSameTarget) {
+        damage = 0
         if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(i) >= melee.dest.Armor) {
-          damage = sommet.monster.damageMelee.roll()
+          damage = sommet.monster.damageMelee.roll(random)
           melee.value = damage
           hp -= damage
           continueOnSameTarget = hp > 0
@@ -216,7 +218,7 @@ object mainex2 {
         else {
           melee.value = 0
         }
-        sommet.monster.action ++= ArrayBuffer(melee)
+        sommet.monster.action ++= ArrayBuffer(melee.copy(value = damage))
         mcount += 1
         atkCount += 1
       }
@@ -228,8 +230,9 @@ object mainex2 {
     for (ranged <- rangedTargets if rcount < sommet.monster.RangedAtckCount if atkCount < maxAttacks) {
       hp = ranged.dest.HP
       for (i <- 0 until sommet.monster.RangedAtckCount if continueOnSameTarget) {
+        damage = 0
         if (Random.nextInt(20) + sommet.monster.RangedAtckChance(i) >= ranged.dest.Armor) {
-          damage = sommet.monster.damageRanged.roll()
+          damage = sommet.monster.damageRanged.roll(random)
           ranged.value = damage
           hp -= damage
           continueOnSameTarget = hp > 0
@@ -237,7 +240,7 @@ object mainex2 {
         else {
           ranged.value = 0
         }
-        sommet.monster.action ++= ArrayBuffer(ranged)
+        sommet.monster.action ++= ArrayBuffer(ranged.copy(value = damage))
         rcount += 1
         atkCount += 1
       }
