@@ -7,7 +7,7 @@ class Warlord(x: Double, y: Double) extends Serializable with Monster {
 
 
   override var HP: Int = 141
-  override var Armor: Int = 10
+  override var Armor: Int = 27
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MELEE)
   override var Speed: Int = 30
   override var damageMelee: Damage = Damage(1, 8, 20)

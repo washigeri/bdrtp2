@@ -16,8 +16,11 @@ object mainex2 {
   def main(args: Array[String]): Unit = {
     val sc = new SparkContext(Conf)
     sc.setLogLevel("ERROR")
+    var solar = new Solar(0, 5)
+    solar.canHeal = false
     val myVertices = sc.makeRDD(Array(
-      (1L, new node(id = 1, new Solar(0, 5))), //A
+
+      (1L, new node(id = 1, solar)), //A
       (2L, new node(id = 2, new Worgrider(110, 0))), //B
       (3L, new node(id = 3, new Worgrider(110, 5))), //C
       (4L, new node(id = 4, new Worgrider(110, 10))), //D
