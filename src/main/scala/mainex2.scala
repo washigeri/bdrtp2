@@ -65,8 +65,8 @@ object mainex2 {
           return
         }
 
-        // val res = messages.collect()
-        //println("fini")
+        val res = messages.collect()
+        println("fini")
         //println(res)
        myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction(vid, sommet, message)
