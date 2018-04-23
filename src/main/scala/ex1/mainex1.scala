@@ -1,7 +1,8 @@
+package ex1
+
 import java.io.{File, IOException}
 import java.nio.file.{Files, Paths}
 
-import logic.creature
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
 import net.ruippeixotog.scalascraper.dsl.DSL._

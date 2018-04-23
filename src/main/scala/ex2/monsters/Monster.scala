@@ -1,8 +1,10 @@
-package logic
+package ex2.monsters
 
-import logic.MessageTypeEnum.MessageTypeEnum
+import ex2.logic.MessageTypeEnum.MessageTypeEnum
+import ex2.logic.{Message, Position}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.math.max
 import scala.util.Random
 
 trait Monster {
@@ -11,8 +13,8 @@ trait Monster {
   var ListAction: List[MessageTypeEnum]
   var Speed: Int
   var Regeneration: Int = 0
-  var DistanceMoved: Int = 0
   var maxHp:Int
+  var DamageReduction: Int = 0
   var MeleeAtckCount: Int = 0
   var RangedAtckCount: Int = 0
   var MeleeAtckChance: List[Int] = List()
@@ -20,8 +22,17 @@ trait Monster {
   var damageMelee: Damage
   var damageRanged: Damage
   var position: Position
+  var canHeal: Boolean = false
+  var healPower: Int = 0
+  var action: ArrayBuffer[Message] = ArrayBuffer[Message]()
 
-  var action: ArrayBuffer[Message] =ArrayBuffer[Message]()
+  def shouldHeal(target: Monster): Boolean = {
+    canHeal && target.HP < 0.25 * target.maxHp
+  }
+
+  def heal(): Int = {
+    healPower
+  }
 
   def action(distance: Double): MessageTypeEnum
 
@@ -50,7 +61,7 @@ trait Monster {
   }
 
   def removeHP(damage: Int): Unit = {
-    this.HP -= damage
+    this.HP -= max(0, damage - DamageReduction)
   }
 
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable{

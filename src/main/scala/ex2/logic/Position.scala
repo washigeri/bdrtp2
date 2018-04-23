@@ -1,4 +1,4 @@
-package logic
+package ex2.logic
 
 /**
   * Created by oxeyo on 17/04/2018.

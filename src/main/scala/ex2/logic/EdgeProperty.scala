@@ -1,6 +1,6 @@
-package logic
+package ex2.logic
 
-import logic.RelationType.RelationType
+import ex2.logic.RelationType.RelationType
 
 object RelationType extends Enumeration with Serializable {
   type RelationType = Value
