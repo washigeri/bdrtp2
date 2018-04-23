@@ -1,6 +1,7 @@
-package logic
+package ex2.monsters
 
-import logic.MessageTypeEnum.MessageTypeEnum
+import ex2.logic.MessageTypeEnum.MessageTypeEnum
+import ex2.logic.{MessageTypeEnum, Position}
 
 /**
   * Created by oxeyo on 10/04/2018.

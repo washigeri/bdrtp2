@@ -1,6 +1,7 @@
-package logic
+package ex2.monsters
 
-import logic.MessageTypeEnum.MessageTypeEnum
+import ex2.logic.MessageTypeEnum.MessageTypeEnum
+import ex2.logic.{Message, Position}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
@@ -11,7 +12,6 @@ trait Monster {
   var ListAction: List[MessageTypeEnum]
   var Speed: Int
   var Regeneration: Int = 0
-  var DistanceMoved: Int = 0
   var maxHp:Int
   var MeleeAtckCount: Int = 0
   var RangedAtckCount: Int = 0

@@ -1,4 +1,4 @@
-package logic
+package ex1
 
 import scala.collection.mutable.ListBuffer
 
