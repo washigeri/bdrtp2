@@ -258,6 +258,7 @@ object mainex2 {
 
   def ApplyAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
     val monster: Monster = sommet.monster
+
     for (action <- message) {
       action.typem match {
         case MessageTypeEnum.MOVE => monster.move(action.dest); println(monster.getClass.getSimpleName + sommet.id + " avance vers " + action.dest.getClass.getSimpleName + action.dstid)
