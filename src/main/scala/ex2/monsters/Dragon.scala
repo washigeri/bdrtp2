@@ -1,7 +1,9 @@
 package ex2.monsters
 
 import ex2.logic.MessageTypeEnum.MessageTypeEnum
-import ex2.logic.{MessageTypeEnum, Position}
+import ex2.logic.{Message, MessageTypeEnum, Position}
+
+import scala.collection.mutable.ArrayBuffer
 
 class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy {
   override var HP: Int = 391
@@ -18,6 +20,7 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
   RangedAtckChance = List(31, 31, 31)
   MeleeAtckChance = List(33)
   var flying = false
+  var alterself = true
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0 && !flying) {
@@ -28,4 +31,9 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
     }
     ListAction.head
   }
+
+  def IA(messages: ArrayBuffer[Message]): ArrayBuffer[Message] = {
+    ArrayBuffer[Message]()
+  }
+
 }

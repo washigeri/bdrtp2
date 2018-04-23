@@ -127,45 +127,28 @@ object mainex2 {
       while (true) {
         println("---------------------------------DEBUT DU TOUR--------------------")
         println("Tour " + counter)
-        //println("---------------------------------MONSTER--------------------")
         counter += 1
         val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
         if (messages.isEmpty()) {
 
           println("---------------------------------FIN--------------------")
-
-          //println("fini")
           return
         }
 
-        // val res = messages.collect()
-        //println("fini")
-        //println(res)
-        //println("---------------------------------CHOIX DES ACTIONS--------------------")
 
         myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction2(vid, sommet, message)
 
         )
-        //var res = myGraph.vertices.collect()
-        //   println(res)
 
         val messages2 = myGraph.aggregateMessages[ArrayBuffer[Message]](
           sendActionsToApply,
           MergeActions
         )
-        /*val res2 = messages2.collect()
-        println(messages2)*/
-        //println("---------------------------------APPLICATION DES ACTIONS--------------------")
 
         myGraph = myGraph.joinVertices(messages2)(
           (vid, sommet, message) => ApplyAction(vid, sommet, message)
         )
-
-        /* val res = myGraph.vertices.collect()
-         println(res)*/
-        //return
-        // println("---------------------------------FIN DU TOUR--------------------")
 
       }
     }
@@ -340,51 +323,5 @@ object mainex2 {
     monster.action = ArrayBuffer[Message]()
     new node(sommet.id, monster)
   }
-
-  /*def ChooseAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
-    var moveBuffer = ArrayBuffer[Message]()
-    for (action <- message) {
-      if (action.typem == MessageTypeEnum.MELEE) {
-        if (sommet.monster.action.size < sommet.monster.MeleeAtckCount) {
-          if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(sommet.monster.action.size) >= action.dest.Armor) {
-            action.value = sommet.monster.damageMelee.roll()
-          } else {
-            action.value = 0
-          }
-
-          sommet.monster.action = sommet.monster.action ++ ArrayBuffer(action)
-        }
-      }
-      if (action.typem == MessageTypeEnum.RANGED) {
-        if (sommet.monster.action.size < sommet.monster.RangedAtckCount) {
-          if (Random.nextInt(20) + sommet.monster.RangedAtckChance(sommet.monster.action.size) >= action.dest.Armor) {
-            action.value = sommet.monster.damageRanged.roll()
-          } else {
-            action.value = 0
-          }
-
-          sommet.monster.action = sommet.monster.action ++ ArrayBuffer(action)
-        }
-      }
-      if (action.typem == MessageTypeEnum.HEAL) {
-        sommet.monster.action = ArrayBuffer(action)
-        return new node(sommet.id, sommet.monster)
-      }
-      if (action.typem == MessageTypeEnum.MOVE) {
-        moveBuffer = moveBuffer ++ ArrayBuffer[Message](action)
-      }
-    }
-    if (sommet.monster.action.isEmpty) {
-      sommet.monster.action = ArrayBuffer(moveBuffer(0))
-      for (action2 <- moveBuffer) {
-        if (sommet.monster.getDistance(sommet.monster.action(0).dest) > sommet.monster.getDistance(action2.dest)) {
-          sommet.monster.action = ArrayBuffer(action2)
-        }
-      }
-    }
-
-    new node(sommet.id, sommet.monster)
-
-  }*/
 
 }
