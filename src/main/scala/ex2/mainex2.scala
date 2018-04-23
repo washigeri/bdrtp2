@@ -73,9 +73,9 @@ object mainex2 {
       (5L, new node(5, new MovanicDeva(0, -5))),
       (6L, new node(6, new Astral(-5, -5))),
       (7L, new node(7, new Astral(-5, -6))),
-      (8L, new node(8, new Astral(-5, -6))),
-      (9L, new node(9, new Astral(-5, -6))),
-      (10L, new node(10, new Astral(-5, -7))),
+      (8L, new node(8, new Astral(-5, -7))),
+      (9L, new node(9, new Astral(-5, -8))),
+      (10L, new node(10, new Astral(-5, -4))),
       (11L, new node(11, new Dragon(200, 200))),
       (12L, new node(12, new AngelSlayer(110, 110))),
       (13L, new node(13, new AngelSlayer(115, 110))),
@@ -212,12 +212,11 @@ object mainex2 {
 
   def ChooseAction2(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
     if(sommet.monster.getClass.getSimpleName!="Dragon"){
-      val random = new Random()
       var meleeTargets = ArrayBuffer[Message]()
       var rangedTargets = ArrayBuffer[Message]()
       var moveTargets = ArrayBuffer[Message]()
       var healTargets = ArrayBuffer[Message]()
-      for (msg <- message.filter(m=>m.dest.alterself==false)) {
+      for (msg <- message.filter(m => !m.dest.alterself)) {
         msg.typem match {
           case MessageTypeEnum.MELEE => meleeTargets.+=(msg)
           case MessageTypeEnum.RANGED => rangedTargets.+=(msg)
@@ -296,7 +295,7 @@ object mainex2 {
       }
 
     }else{
-      var res = sommet.monster.IA(message)
+      val res = sommet.monster.IA(message)
       sommet.monster.action=res
     }
 
