@@ -22,8 +22,17 @@ trait Monster {
   var damageMelee: Damage
   var damageRanged: Damage
   var position: Position
+  var canHeal: Boolean = false
+  var healPower: Int = 0
+  var action: ArrayBuffer[Message] = ArrayBuffer[Message]()
 
-  var action: ArrayBuffer[Message] =ArrayBuffer[Message]()
+  def shouldHeal(target: Monster): Boolean = {
+    canHeal && target.HP < 0.25 * target.maxHp
+  }
+
+  def heal(): Int = {
+    healPower
+  }
 
   def action(distance: Double): MessageTypeEnum
 

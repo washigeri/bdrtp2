@@ -45,7 +45,7 @@ object mainex2 {
       Edge(1L, 13L, EdgeProperty(RelationType.ENEMY)),
       Edge(1L, 14L, EdgeProperty(RelationType.ENEMY)),
       Edge(1L, 15L, EdgeProperty(RelationType.ENEMY)),
-      Edge(1L, 16L, EdgeProperty(RelationType.ENEMY))
+      Edge(1L, 16L, EdgeProperty(RelationType.ENEMY)), Edge(1L, 1L, EdgeProperty(RelationType.FRIEND)) //Edge qui boucle sur le solar pour qu'il puisse se soigner
     ))
 
 
@@ -120,11 +120,19 @@ object mainex2 {
 
   def sendActions(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
-      val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-      val message1 = new Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
-      val message2 = new Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
-      ctx.sendToSrc(ArrayBuffer(message1))
-      ctx.sendToDst(ArrayBuffer(message2))
+      if (ctx.attr.getRelation == RelationType.ENEMY) {
+        val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
+        val message1 = new Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
+        val message2 = new Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
+        ctx.sendToSrc(ArrayBuffer(message1))
+        ctx.sendToDst(ArrayBuffer(message2))
+      }
+      else {
+        if (ctx.srcAttr.monster.shouldHeal(ctx.dstAttr.monster)) {
+          val message = new Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, MessageTypeEnum.HEAL)
+          ctx.sendToSrc(ArrayBuffer(message))
+        }
+      }
 
     }
   }
@@ -165,21 +173,35 @@ object mainex2 {
     var meleeTargets = ArrayBuffer[Message]()
     var rangedTargets = ArrayBuffer[Message]()
     var moveTargets = ArrayBuffer[Message]()
+    var healTargets = ArrayBuffer[Message]()
     for (msg <- message) {
       msg.typem match {
         case MessageTypeEnum.MELEE => meleeTargets.+=(msg)
         case MessageTypeEnum.RANGED => rangedTargets.+=(msg)
         case MessageTypeEnum.MOVE => moveTargets.+=(msg)
-        case MessageTypeEnum.HEAL =>
+        case MessageTypeEnum.HEAL => healTargets.+=(msg)
       }
+    }
+    if (healTargets.nonEmpty) {
+      if (healTargets.size == 1) {
+        healTargets(0).value = sommet.monster.healPower
+        sommet.monster.action = ArrayBuffer(healTargets(0))
+
+      } else {
+        healTargets.foreach(_.value = sommet.monster.healPower)
+        sommet.monster.action = healTargets
+        return new node(sommet.id, sommet.monster)
+      }
+
     }
     val maxAttacks = max(sommet.monster.RangedAtckCount, sommet.monster.MeleeAtckCount)
     var mcount: Int = 0
     var rcount: Int = 0
+    var atkCount: Int = 0
     var hp = 0
     var damage = 0
     var continueOnSameTarget = true
-    for (melee <- meleeTargets if mcount < sommet.monster.MeleeAtckCount if sommet.monster.action.size < maxAttacks) {
+    for (melee <- meleeTargets if mcount < sommet.monster.MeleeAtckCount if atkCount < maxAttacks) {
       hp = melee.dest.HP
       for (i <- 0 until sommet.monster.MeleeAtckCount if continueOnSameTarget) {
         if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(i) >= melee.dest.Armor) {
@@ -193,13 +215,14 @@ object mainex2 {
         }
         sommet.monster.action ++= ArrayBuffer(melee)
         mcount += 1
+        atkCount += 1
       }
       continueOnSameTarget = true
     }
     hp = 0
     damage = 0
     continueOnSameTarget = true
-    for (ranged <- rangedTargets if rcount < sommet.monster.RangedAtckCount if sommet.monster.action.size < maxAttacks) {
+    for (ranged <- rangedTargets if rcount < sommet.monster.RangedAtckCount if atkCount < maxAttacks) {
       hp = ranged.dest.HP
       for (i <- 0 until sommet.monster.RangedAtckCount if continueOnSameTarget) {
         if (Random.nextInt(20) + sommet.monster.RangedAtckChance(i) >= ranged.dest.Armor) {
@@ -213,6 +236,7 @@ object mainex2 {
         }
         sommet.monster.action ++= ArrayBuffer(ranged)
         rcount += 1
+        atkCount += 1
       }
       continueOnSameTarget = true
     }
@@ -234,10 +258,10 @@ object mainex2 {
     for (action <- message) {
       action.typem match {
         case MessageTypeEnum.MOVE => monster.move(action.dest); println(monster.getClass.getSimpleName + sommet.id + " avance vers " + action.dest.getClass.getSimpleName + action.dstid)
-        case MessageTypeEnum.HEAL =>
+        case MessageTypeEnum.HEAL => monster.HP = min(monster.maxHp, monster.HP + action.value); println(action.source.getClass.getSimpleName + action.srcid + " soigne " + monster.getClass.getSimpleName + sommet.id + " de " + action.value + " PVs")
         case _ =>
           if (action.value == 0) {
-            println(monster.getClass.getSimpleName + sommet.id + "ESQUIVE l'attaque " + action.typem + " de " + action.source.getClass.getSimpleName + action.srcid)
+            println(monster.getClass.getSimpleName + sommet.id + " ESQUIVE l'attaque " + action.typem + " de " + action.source.getClass.getSimpleName + action.srcid)
           } else {
             monster.removeHP(action.value)
             println(monster.getClass.getSimpleName + sommet.id + " se fait attaquer a " + action.typem + " de " + action.source.getClass.getSimpleName + " pour " + action.value + " points de degats")
