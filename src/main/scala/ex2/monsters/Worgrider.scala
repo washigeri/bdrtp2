@@ -3,7 +3,7 @@ package ex2.monsters
 import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{MessageTypeEnum, Position}
 
-class Worgrider(x: Double, y: Double) extends Serializable with Monster {
+class Worgrider(x: Double, y: Double) extends Serializable with Monster with Ennemy {
 
   override var HP: Int = 13
   override var Armor: Int = 18

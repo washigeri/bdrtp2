@@ -3,7 +3,7 @@ package ex2.monsters
 import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{MessageTypeEnum, Position}
 
-class MovanicDeva(x: Double, y: Double) extends Serializable with Monster {
+class MovanicDeva(x: Double, y: Double) extends Serializable with Monster with Angel {
   override var HP: Int = 126
   override var Armor: Int = 24
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.MELEE, MessageTypeEnum.HEAL)

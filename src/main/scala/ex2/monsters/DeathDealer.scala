@@ -3,7 +3,7 @@ package ex2.monsters
 import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{MessageTypeEnum, Position}
 
-class DeathDealer(x: Double, y: Double) extends Serializable with Monster {
+class DeathDealer(x: Double, y: Double) extends Serializable with Monster with Ennemy {
   override var HP: Int = 243
   override var Armor: Int = 13
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.RANGED, MessageTypeEnum.MELEE, MessageTypeEnum.MOVE)

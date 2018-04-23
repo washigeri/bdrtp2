@@ -3,7 +3,7 @@ package ex2.monsters
 import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{MessageTypeEnum, Position}
 
-class Dragon(x: Double, y: Double) extends Serializable with Monster {
+class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy {
   override var HP: Int = 391
   override var Armor: Int = 37
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.MELEE, MessageTypeEnum.RANGED)

@@ -3,7 +3,7 @@ package ex2.monsters
 import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{MessageTypeEnum, Position}
 
-class BarbarianOrc(x: Double, y: Double) extends Serializable with Monster {
+class BarbarianOrc(x: Double, y: Double) extends Serializable with Monster with Ennemy {
 
   override var HP: Int = 142
   override var Armor: Int = 17
