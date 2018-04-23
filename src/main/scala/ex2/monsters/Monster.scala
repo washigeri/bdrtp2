@@ -24,6 +24,8 @@ trait Monster {
   var position: Position
   var canHeal: Boolean = false
   var healPower: Int = 0
+  var alterself=false
+  var flying=false
   var action: ArrayBuffer[Message] = ArrayBuffer[Message]()
 
   def shouldHeal(target: Monster): Boolean = {
@@ -63,14 +65,17 @@ trait Monster {
   def removeHP(damage: Int): Unit = {
     this.HP -= max(0, damage - DamageReduction)
   }
+  def IA(messages: ArrayBuffer[Message]): ArrayBuffer[Message] = {
+    ArrayBuffer[Message]()
+  }
 
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable{
 
-    def roll(random: Random): Int = {
+    def roll(): Int = {
 
       var res = baseDmg
       for (_ <- 1 to nbdice) {
-        res += 1 + random.nextInt(diceSize)
+        res += 1 + Random.nextInt(diceSize)
       }
       res
     }

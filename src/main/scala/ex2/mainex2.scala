@@ -159,6 +159,7 @@ object mainex2 {
 
 
   def sendActions(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
+
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
       if (ctx.attr.getRelation == RelationType.ENEMY) {
         val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
@@ -210,90 +211,96 @@ object mainex2 {
   }
 
   def ChooseAction2(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
-    val random = new Random()
-    var meleeTargets = ArrayBuffer[Message]()
-    var rangedTargets = ArrayBuffer[Message]()
-    var moveTargets = ArrayBuffer[Message]()
-    var healTargets = ArrayBuffer[Message]()
-    for (msg <- message) {
-      msg.typem match {
-        case MessageTypeEnum.MELEE => meleeTargets.+=(msg)
-        case MessageTypeEnum.RANGED => rangedTargets.+=(msg)
-        case MessageTypeEnum.MOVE => moveTargets.+=(msg)
-        case MessageTypeEnum.HEAL => healTargets.+=(msg)
-      }
-    }
-    if (healTargets.nonEmpty) {
-      if (healTargets.size == 1) {
-        healTargets(0).value = sommet.monster.healPower
-        sommet.monster.action = ArrayBuffer(healTargets(0))
-
-      } else {
-        healTargets.foreach(_.value = sommet.monster.healPower)
-        sommet.monster.action = healTargets
-        return new node(sommet.id, sommet.monster)
-      }
-
-    }
-    val maxAttacks = max(sommet.monster.RangedAtckCount, sommet.monster.MeleeAtckCount)
-    var mcount: Int = 0
-    var rcount: Int = 0
-    var atkCount: Int = 0
-    var hp = 0
-    var damage = 0
-    var continueOnSameTarget = true
-    for (melee <- meleeTargets if mcount < sommet.monster.MeleeAtckCount if atkCount < maxAttacks) {
-      hp = melee.dest.HP
-      for (i <- 0 until sommet.monster.MeleeAtckCount if continueOnSameTarget) {
-        damage = 0
-        if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(i) >= melee.dest.Armor) {
-          damage = sommet.monster.damageMelee.roll(random)
-          melee.value = damage
-          hp -= damage
-          continueOnSameTarget = hp > 0
+    if(sommet.monster.getClass.getSimpleName!="Dragon"){
+      val random = new Random()
+      var meleeTargets = ArrayBuffer[Message]()
+      var rangedTargets = ArrayBuffer[Message]()
+      var moveTargets = ArrayBuffer[Message]()
+      var healTargets = ArrayBuffer[Message]()
+      for (msg <- message.filter(m=>m.dest.alterself==false)) {
+        msg.typem match {
+          case MessageTypeEnum.MELEE => meleeTargets.+=(msg)
+          case MessageTypeEnum.RANGED => rangedTargets.+=(msg)
+          case MessageTypeEnum.MOVE => moveTargets.+=(msg)
+          case MessageTypeEnum.HEAL => healTargets.+=(msg)
         }
-        else {
-          melee.value = 0
-        }
-        sommet.monster.action ++= ArrayBuffer(melee.copy(value = damage))
-        mcount += 1
-        atkCount += 1
       }
+      if (healTargets.nonEmpty) {
+        if (healTargets.size == 1) {
+          healTargets(0).value = sommet.monster.healPower
+          sommet.monster.action = ArrayBuffer(healTargets(0))
+
+        } else {
+          healTargets.foreach(_.value = sommet.monster.healPower)
+          sommet.monster.action = healTargets
+          return new node(sommet.id, sommet.monster)
+        }
+
+      }
+      val maxAttacks = max(sommet.monster.RangedAtckCount, sommet.monster.MeleeAtckCount)
+      var mcount: Int = 0
+      var rcount: Int = 0
+      var atkCount: Int = 0
+      var hp = 0
+      var damage = 0
+      var continueOnSameTarget = true
+      for (melee <- meleeTargets if mcount < sommet.monster.MeleeAtckCount if atkCount < maxAttacks) {
+        hp = melee.dest.HP
+        for (i <- 0 until sommet.monster.MeleeAtckCount if continueOnSameTarget) {
+          damage = 0
+          if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(i) >= melee.dest.Armor) {
+            damage = sommet.monster.damageMelee.roll()
+            melee.value = damage
+            hp -= damage
+            continueOnSameTarget = hp > 0
+          }
+          else {
+            melee.value = 0
+          }
+          sommet.monster.action ++= ArrayBuffer(melee.copy(value = damage))
+          mcount += 1
+          atkCount += 1
+        }
+        continueOnSameTarget = true
+      }
+      hp = 0
+      damage = 0
       continueOnSameTarget = true
-    }
-    hp = 0
-    damage = 0
-    continueOnSameTarget = true
-    for (ranged <- rangedTargets if rcount < sommet.monster.RangedAtckCount if atkCount < maxAttacks) {
-      hp = ranged.dest.HP
-      for (i <- 0 until sommet.monster.RangedAtckCount if continueOnSameTarget) {
-        damage = 0
-        if (Random.nextInt(20) + sommet.monster.RangedAtckChance(i) >= ranged.dest.Armor) {
-          damage = sommet.monster.damageRanged.roll(random)
-          ranged.value = damage
-          hp -= damage
-          continueOnSameTarget = hp > 0
+      for (ranged <- rangedTargets if rcount < sommet.monster.RangedAtckCount if atkCount < maxAttacks) {
+        hp = ranged.dest.HP
+        for (i <- 0 until sommet.monster.RangedAtckCount if continueOnSameTarget) {
+          damage = 0
+          if (Random.nextInt(20) + sommet.monster.RangedAtckChance(i) >= ranged.dest.Armor) {
+            damage = sommet.monster.damageRanged.roll()
+            ranged.value = damage
+            hp -= damage
+            continueOnSameTarget = hp > 0
+          }
+          else {
+            ranged.value = 0
+          }
+          sommet.monster.action ++= ArrayBuffer(ranged.copy(value = damage))
+          rcount += 1
+          atkCount += 1
         }
-        else {
-          ranged.value = 0
-        }
-        sommet.monster.action ++= ArrayBuffer(ranged.copy(value = damage))
-        rcount += 1
-        atkCount += 1
+        continueOnSameTarget = true
       }
-      continueOnSameTarget = true
+
+      if (sommet.monster.action.isEmpty) {
+        sommet.monster.action = ArrayBuffer(moveTargets(0))
+        for (move <- moveTargets) {
+          if (sommet.monster.getDistance(sommet.monster.action(0).dest) < sommet.monster.getDistance(move.dest)) {
+            sommet.monster.action = ArrayBuffer(move)
+          }
+        }
+      }
+
+    }else{
+      var res = sommet.monster.IA(message)
+      sommet.monster.action=res
     }
 
-    if (sommet.monster.action.isEmpty) {
-      sommet.monster.action = ArrayBuffer(moveTargets(0))
-      for (move <- moveTargets) {
-        if (sommet.monster.getDistance(sommet.monster.action(0).dest) < sommet.monster.getDistance(move.dest)) {
-          sommet.monster.action = ArrayBuffer(move)
-        }
-      }
-    }
     new node(sommet.id, sommet.monster)
-
   }
 
   def ApplyAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {

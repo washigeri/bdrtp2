@@ -4,6 +4,7 @@ import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{Message, MessageTypeEnum, Position}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 
 class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy {
   override var HP: Int = 391
@@ -19,8 +20,8 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
   RangedAtckCount = 3
   RangedAtckChance = List(31, 31, 31)
   MeleeAtckChance = List(33)
-  var flying = false
-  var alterself = true
+   flying = false
+   alterself = true
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0 && !flying) {
@@ -32,8 +33,44 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
     ListAction.head
   }
 
-  def IA(messages: ArrayBuffer[Message]): ArrayBuffer[Message] = {
-    ArrayBuffer[Message]()
+  override def IA(messages: ArrayBuffer[Message]): ArrayBuffer[Message] = {
+    var actionBuffer = ArrayBuffer[Message]()
+    var actionBufferRanged = ArrayBuffer[Message]()
+    for(action <- messages){
+      if(alterself==true){
+
+        if(action.dstid==1 && action.typem==MessageTypeEnum.MOVE){
+          actionBuffer.+=(action)
+        }
+        if(action.dstid==1 && action.typem==MessageTypeEnum.MELEE){
+          if(Random.nextInt(20)+MeleeAtckChance.head>=action.dest.Armor){
+            action.value=this.damageMelee.roll()
+          }else{
+            action.value=0
+          }
+
+          alterself=false
+          actionBuffer = ArrayBuffer[Message](action)
+          flying=true
+        }
+
+      }else{
+        if(flying && action.typem==MessageTypeEnum.RANGED && actionBufferRanged.size<3){
+          if(Random.nextInt(20)+RangedAtckChance.head>=action.dest.Armor){
+            action.value=this.damageRanged.roll()
+          }else{
+            action.value=0
+          }
+          actionBufferRanged.+=(action)
+        }
+      }
+
+    }
+    if(actionBufferRanged.size<=3 && actionBufferRanged.size>0){
+      return actionBufferRanged
+    }
+    actionBuffer;
+
   }
 
 }
