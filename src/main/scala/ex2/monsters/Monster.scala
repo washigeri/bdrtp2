@@ -4,6 +4,7 @@ import ex2.logic.MessageTypeEnum.MessageTypeEnum
 import ex2.logic.{Message, Position}
 
 import scala.collection.mutable.ArrayBuffer
+import scala.math.max
 import scala.util.Random
 
 trait Monster {
@@ -13,6 +14,7 @@ trait Monster {
   var Speed: Int
   var Regeneration: Int = 0
   var maxHp:Int
+  var DamageReduction: Int = 0
   var MeleeAtckCount: Int = 0
   var RangedAtckCount: Int = 0
   var MeleeAtckChance: List[Int] = List()
@@ -50,7 +52,7 @@ trait Monster {
   }
 
   def removeHP(damage: Int): Unit = {
-    this.HP -= damage
+    this.HP -= max(0, damage - DamageReduction)
   }
 
   case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable{

@@ -9,10 +9,11 @@ import ex2.logic.{MessageTypeEnum, Position}
 class Solar(x: Double, y: Double) extends Serializable with Monster {
   override var HP: Int = 363
   override var Armor: Int = 14
-  override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MOVE, MessageTypeEnum.MELEE)
+  override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MELEE, MessageTypeEnum.HEAL)
   override var Speed: Int = 50
   Regeneration = 15
   override var damageMelee: Damage = Damage(3, 6, 18)
+  DamageReduction = 15
 
   MeleeAtckCount = 4
   RangedAtckCount = 4

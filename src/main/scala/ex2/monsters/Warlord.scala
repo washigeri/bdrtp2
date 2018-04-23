@@ -13,17 +13,17 @@ class Warlord(x: Double, y: Double) extends Serializable with Monster {
   override var damageMelee: Damage = Damage(1, 8, 20)
 
   MeleeAtckCount = 3
-  RangedAtckCount = 1
+  RangedAtckCount = 0
   MeleeAtckChance = List(20, 15, 10).map(_ + 1)
   RangedAtckChance = List(19)
   override var damageRanged: Damage = Damage(1, 6, 5)
   override var position: Position = new Position(x, y)
 
   override def action(distance: Double): MessageTypeEnum = {
-    if (distance < 40 && distance > 0) {
-      ListAction(1)
-    }
-    else if (distance == 0) {
+    // if (distance < 40 && distance > 0) {
+    //   ListAction(1)
+    // }
+    if (distance == 0) {
       ListAction(2)
     }
     else {

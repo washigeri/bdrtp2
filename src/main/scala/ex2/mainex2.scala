@@ -256,7 +256,7 @@ object mainex2 {
     new node(sommet.id, monster)
   }
 
-  def ChooseAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
+  /*def ChooseAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
     var moveBuffer = ArrayBuffer[Message]()
     for (action <- message) {
       if (action.typem == MessageTypeEnum.MELEE) {
@@ -300,6 +300,6 @@ object mainex2 {
 
     new node(sommet.id, sommet.monster)
 
-  }
+  }*/
 
 }
