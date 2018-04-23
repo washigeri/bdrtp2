@@ -18,7 +18,7 @@ class Planetar(x: Double, y: Double) extends Serializable with Monster {
   MeleeAtckCount = 3
   RangedAtckCount = 0
   MeleeAtckChance = List(27,22,17 ).map(_ + 3)
-  RangedAtckChance = _
+
   override var damageRanged: Damage = Damage(2, 6, 14)
   override var position: Position = new Position(x, y)
   healPower = 50 * 3
