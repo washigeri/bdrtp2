@@ -6,7 +6,7 @@ import ex2.logic.{MessageTypeEnum, Position}
 /**
   * Created by oxeyo on 10/04/2018.
   */
-class AngelSlayer(x: Double, y: Double) extends Serializable with Monster {
+class AngelSlayer(x: Double, y: Double) extends Serializable with Monster with Ennemy {
   override var HP: Int = 112
   override var Armor: Int = 26
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MELEE, MessageTypeEnum.HEAL)

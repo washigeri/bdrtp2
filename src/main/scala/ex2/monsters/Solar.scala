@@ -6,7 +6,7 @@ import ex2.logic.{MessageTypeEnum, Position}
 /**
   * Created by oxeyo on 10/04/2018.
   */
-class Solar(x: Double, y: Double) extends Serializable with Monster {
+class Solar(x: Double, y: Double) extends Serializable with Monster with Angel {
   override var HP: Int = 363
   override var Armor: Int = 44
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.RANGED, MessageTypeEnum.MELEE, MessageTypeEnum.HEAL)

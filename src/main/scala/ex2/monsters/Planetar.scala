@@ -6,7 +6,7 @@ import ex2.logic.{MessageTypeEnum, Position}
 /**
   * Created by oxeyo on 10/04/2018.
   */
-class Planetar(x: Double, y: Double) extends Serializable with Monster {
+class Planetar(x: Double, y: Double) extends Serializable with Monster with Angel {
   override var HP: Int = 229
   override var Armor: Int = 32
   override var ListAction: List[MessageTypeEnum] = List(MessageTypeEnum.MOVE, MessageTypeEnum.MELEE, MessageTypeEnum.HEAL)

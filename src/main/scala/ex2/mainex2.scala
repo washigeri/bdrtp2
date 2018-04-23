@@ -14,9 +14,10 @@ object mainex2 {
   val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("local[*]")
 
   def main(args: Array[String]): Unit = {
+
     val sc = new SparkContext(Conf)
     sc.setLogLevel("ERROR")
-    var solar = new Solar(0, 5)
+    val solar = new Solar(0, 5)
     solar.canHeal = false
     val myVertices = sc.makeRDD(Array(
 
@@ -52,6 +53,7 @@ object mainex2 {
     ))
 
 
+    println("---------------------------------COMBAT 1--------------------")
     val myGraph = Graph(myVertices, myEdges)
     var res = execute(myGraph, sc).vertices.collect()
     println("ETAT APRES LE COMBAT")
@@ -61,6 +63,58 @@ object mainex2 {
     for (t <- res) {
       println(t._2.monster.getClass.getSimpleName + " " + t._2.id + " HP: " + t._2.monster.HP)
     }
+    println("--------------------------------- FIN COMBAT 1--------------------")
+    println("---------------------------------COMBAT 2--------------------")
+    val myVertices2Buffer = ArrayBuffer(
+      (1L, new node(1, new Solar(0, 5))),
+      (2L, new node(2, new Planetar(0, 10))),
+      (3L, new node(3, new Planetar(0, 0))),
+      (4L, new node(4, new MovanicDeva(5, 5))),
+      (5L, new node(5, new MovanicDeva(0, -5))),
+      (6L, new node(6, new Astral(-5, -5))),
+      (7L, new node(7, new Astral(-5, -6))),
+      (8L, new node(8, new Astral(-5, -6))),
+      (9L, new node(9, new Astral(-5, -6))),
+      (10L, new node(10, new Astral(-5, -7))),
+      (11L, new node(11, new Dragon(200, 200))),
+      (12L, new node(12, new AngelSlayer(110, 110))),
+      (13L, new node(13, new AngelSlayer(115, 110))),
+      (14L, new node(14, new AngelSlayer(110, 115))),
+      (15L, new node(15, new AngelSlayer(115, 115))),
+      (16L, new node(16, new AngelSlayer(120, 110))),
+      (17L, new node(17, new AngelSlayer(110, 120))),
+      (18L, new node(18, new AngelSlayer(120, 120))),
+      (19L, new node(19, new AngelSlayer(125, 110))),
+      (20L, new node(20, new AngelSlayer(110, 125))),
+      (21L, new node(21, new AngelSlayer(125, 125)))
+    )
+    val startIndex = 22L
+    for (i <- 0 until 200) {
+      myVertices2Buffer.+=((startIndex + i, new node(startIndex.toInt + i, new BarbarianOrc(110, -100 + i))))
+    }
+    val myVertices2 = sc.makeRDD(myVertices2Buffer)
+    val myEdges2Buffer: ArrayBuffer[Edge[EdgeProperty]] = ArrayBuffer()
+    for (node1 <- myVertices2Buffer) {
+      for (node2 <- myVertices2Buffer) {
+        (node1._2.monster, node2._2.monster) match {
+          case (_: Serializable with Monster with Angel, _: Serializable with Monster with Angel) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
+          case (_: Serializable with Monster with Angel, _: Serializable with Monster with Ennemy) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.ENEMY)))
+          case (_: AngelSlayer, _: Dragon) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
+          case _ =>
+        }
+      }
+    }
+    val myEdges2 = sc.makeRDD(myEdges2Buffer)
+    val myGraph2 = Graph(myVertices2, myEdges2)
+    var res2 = execute(myGraph2, sc).vertices.collect()
+    println("ETAT APRES LE COMBAT")
+    //println(res)
+    res2 = res2.filter(tuple => tuple._2.monster.HP > 0)
+    println("SURVIVANTS")
+    for (t <- res) {
+      println(t._2.monster.getClass.getSimpleName + " " + t._2.id + " HP: " + t._2.monster.HP)
+    }
+    println("--------------------------------- FIN COMBAT 2--------------------")
 
 
   }
@@ -73,45 +127,28 @@ object mainex2 {
       while (true) {
         println("---------------------------------DEBUT DU TOUR--------------------")
         println("Tour " + counter)
-        //println("---------------------------------MONSTER--------------------")
         counter += 1
         val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
         if (messages.isEmpty()) {
 
           println("---------------------------------FIN--------------------")
-
-          //println("fini")
           return
         }
 
-        // val res = messages.collect()
-        //println("fini")
-        //println(res)
-        //println("---------------------------------CHOIX DES ACTIONS--------------------")
 
         myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction2(vid, sommet, message)
 
         )
-        //var res = myGraph.vertices.collect()
-        //   println(res)
 
         val messages2 = myGraph.aggregateMessages[ArrayBuffer[Message]](
           sendActionsToApply,
           MergeActions
         )
-        /*val res2 = messages2.collect()
-        println(messages2)*/
-        //println("---------------------------------APPLICATION DES ACTIONS--------------------")
 
         myGraph = myGraph.joinVertices(messages2)(
           (vid, sommet, message) => ApplyAction(vid, sommet, message)
         )
-
-        /* val res = myGraph.vertices.collect()
-         println(res)*/
-        //return
-        // println("---------------------------------FIN DU TOUR--------------------")
 
       }
     }
@@ -286,51 +323,5 @@ object mainex2 {
     monster.action = ArrayBuffer[Message]()
     new node(sommet.id, monster)
   }
-
-  /*def ChooseAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
-    var moveBuffer = ArrayBuffer[Message]()
-    for (action <- message) {
-      if (action.typem == MessageTypeEnum.MELEE) {
-        if (sommet.monster.action.size < sommet.monster.MeleeAtckCount) {
-          if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(sommet.monster.action.size) >= action.dest.Armor) {
-            action.value = sommet.monster.damageMelee.roll()
-          } else {
-            action.value = 0
-          }
-
-          sommet.monster.action = sommet.monster.action ++ ArrayBuffer(action)
-        }
-      }
-      if (action.typem == MessageTypeEnum.RANGED) {
-        if (sommet.monster.action.size < sommet.monster.RangedAtckCount) {
-          if (Random.nextInt(20) + sommet.monster.RangedAtckChance(sommet.monster.action.size) >= action.dest.Armor) {
-            action.value = sommet.monster.damageRanged.roll()
-          } else {
-            action.value = 0
-          }
-
-          sommet.monster.action = sommet.monster.action ++ ArrayBuffer(action)
-        }
-      }
-      if (action.typem == MessageTypeEnum.HEAL) {
-        sommet.monster.action = ArrayBuffer(action)
-        return new node(sommet.id, sommet.monster)
-      }
-      if (action.typem == MessageTypeEnum.MOVE) {
-        moveBuffer = moveBuffer ++ ArrayBuffer[Message](action)
-      }
-    }
-    if (sommet.monster.action.isEmpty) {
-      sommet.monster.action = ArrayBuffer(moveBuffer(0))
-      for (action2 <- moveBuffer) {
-        if (sommet.monster.getDistance(sommet.monster.action(0).dest) > sommet.monster.getDistance(action2.dest)) {
-          sommet.monster.action = ArrayBuffer(action2)
-        }
-      }
-    }
-
-    new node(sommet.id, sommet.monster)
-
-  }*/
 
 }
