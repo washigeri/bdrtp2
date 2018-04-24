@@ -1,8 +1,11 @@
 package ex2
 
+import java.io.Serializable
+
 import ex2.logic._
 import ex2.monsters._
 import org.apache.spark.graphx.{Edge, EdgeContext, Graph, VertexId}
+import org.apache.spark.util.LongAccumulator
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ArrayBuffer
@@ -13,10 +16,10 @@ object mainex2 {
 
   val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("local[*]")
 
-  def main(args: Array[String]): Unit = {
+  var angelCount = 1L
+  var enemyCount = 15L
 
-    val sc = new SparkContext(Conf)
-    sc.setLogLevel("ERROR")
+  def combat1(sc: SparkContext): Unit = {
     val solar = new Solar(0, 5)
     solar.canHeal = false
     val myVertices = sc.makeRDD(Array(
@@ -64,64 +67,14 @@ object mainex2 {
       println(t._2.monster.getClass.getSimpleName + " " + t._2.id + " HP: " + t._2.monster.HP)
     }
     println("--------------------------------- FIN COMBAT 1--------------------")
-    println("---------------------------------COMBAT 2--------------------")
-    val myVertices2Buffer = ArrayBuffer(
-      (1L, new node(1, new Solar(0, 5))),
-      (2L, new node(2, new Planetar(0, 10))),
-      (3L, new node(3, new Planetar(0, 0))),
-      (4L, new node(4, new MovanicDeva(5, 5))),
-      (5L, new node(5, new MovanicDeva(0, -5))),
-      (6L, new node(6, new Astral(-5, -5))),
-      (7L, new node(7, new Astral(-5, -6))),
-      (8L, new node(8, new Astral(-5, -7))),
-      (9L, new node(9, new Astral(-5, -8))),
-      (10L, new node(10, new Astral(-5, -4))),
-      (11L, new node(11, new Dragon(200, 200))),
-      (12L, new node(12, new AngelSlayer(110, 110))),
-      (13L, new node(13, new AngelSlayer(115, 110))),
-      (14L, new node(14, new AngelSlayer(110, 115))),
-      (15L, new node(15, new AngelSlayer(115, 115))),
-      (16L, new node(16, new AngelSlayer(120, 110))),
-      (17L, new node(17, new AngelSlayer(110, 120))),
-      (18L, new node(18, new AngelSlayer(120, 120))),
-      (19L, new node(19, new AngelSlayer(125, 110))),
-      (20L, new node(20, new AngelSlayer(110, 125))),
-      (21L, new node(21, new AngelSlayer(125, 125)))
-    )
-    val startIndex = 22L
-    for (i <- 0 until 200) {
-      myVertices2Buffer.+=((startIndex + i, new node(startIndex.toInt + i, new BarbarianOrc(110, -100 + i))))
-    }
-    val myVertices2 = sc.makeRDD(myVertices2Buffer)
-    val myEdges2Buffer: ArrayBuffer[Edge[EdgeProperty]] = ArrayBuffer()
-    for (node1 <- myVertices2Buffer) {
-      for (node2 <- myVertices2Buffer) {
-        (node1._2.monster, node2._2.monster) match {
-          case (_: Serializable with Monster with Angel, _: Serializable with Monster with Angel) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
-          case (_: Serializable with Monster with Angel, _: Serializable with Monster with Ennemy) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.ENEMY)))
-          case (_: AngelSlayer, _: Dragon) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
-          case _ =>
-        }
-      }
-    }
-    val myEdges2 = sc.makeRDD(myEdges2Buffer)
-    val myGraph2 = Graph(myVertices2, myEdges2)
-    var res2 = execute(myGraph2, sc).vertices.collect()
-    println("ETAT APRES LE COMBAT")
-    //println(res)
-    res2 = res2.filter(tuple => tuple._2.monster.HP > 0)
-    println("SURVIVANTS")
-    for (t <- res) {
-      println(t._2.monster.getClass.getSimpleName + " " + t._2.id + " HP: " + t._2.monster.HP)
-    }
-    println("--------------------------------- FIN COMBAT 2--------------------")
-
-
   }
 
   def execute(g: Graph[node, EdgeProperty], sc: SparkContext): Graph[node, EdgeProperty] = {
     var counter = 1
     var myGraph = g
+    val angelAccum = sc.longAccumulator("angelAccum")
+    val enemyAccum = sc.longAccumulator(name = "enemyAccum")
+
 
     def loop1(): Unit = {
       while (true) {
@@ -129,17 +82,18 @@ object mainex2 {
         println("Tour " + counter)
         counter += 1
         val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
-        if (messages.isEmpty()) {
+        //if (messages.isEmpty()) {
 
-          println("---------------------------------FIN--------------------")
-          return
-        }
+        // println("---------------------------------FIN--------------------")
+        // return
+        // }
 
 
         myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction2(vid, sommet, message)
 
         )
+        //myGraph.vertices.count()
 
         val messages2 = myGraph.aggregateMessages[ArrayBuffer[Message]](
           sendActionsToApply,
@@ -149,6 +103,16 @@ object mainex2 {
         myGraph = myGraph.joinVertices(messages2)(
           (vid, sommet, message) => ApplyAction(vid, sommet, message)
         )
+        //       myGraph.vertices.count()
+
+        //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Ennemy] && v._2.monster.HP <= 0).foreach(_ => enemyAccum.add(1))
+        //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Angel] && v._2.monster.HP <= 0).foreach(_ => angelAccum.add(1))
+        myGraph.vertices.foreach(v => incrementAccs(v, angelAccum, enemyAccum))
+        myGraph = myGraph.subgraph(vpred = (_, attr) => attr.monster.HP > 0)
+        if (angelAccum.value == angelCount || enemyAccum.value == enemyCount) {
+          println("---------------------------------FIN--------------------")
+          return
+        }
 
       }
     }
@@ -157,61 +121,20 @@ object mainex2 {
     myGraph
   }
 
-
-  def sendActions(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
-
-    if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
-      if (ctx.attr.getRelation == RelationType.ENEMY) {
-        val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
-        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
-        ctx.sendToSrc(ArrayBuffer(message1))
-        ctx.sendToDst(ArrayBuffer(message2))
+  def incrementAccs(v: (VertexId, node), acc1: LongAccumulator, acc2: LongAccumulator) = {
+    if (v._2.monster.HP <= 0) {
+      if (v._2.monster.isInstanceOf[Serializable with Monster with Ennemy]) {
+        acc2.add(1L)
       }
-      else {
-        if (ctx.srcAttr.monster.shouldHeal(ctx.dstAttr.monster)) {
-          val message = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, MessageTypeEnum.HEAL)
-          ctx.sendToSrc(ArrayBuffer(message))
-        }
-      }
-
-    }
-  }
-
-
-  def sendActionsToApply(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
-    if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
-      for (action <- ctx.srcAttr.monster.action) {
-        if (ctx.dstAttr.id == action.dstid) {
-          if (action.typem == MessageTypeEnum.MOVE) {
-            ctx.sendToSrc(ArrayBuffer(action))
-          }
-
-          else {
-            ctx.sendToDst(ArrayBuffer(action))
-          }
-        }
-      }
-      for (actiondst <- ctx.dstAttr.monster.action) {
-        if (ctx.srcAttr.id == actiondst.dstid) {
-          if (actiondst.typem == MessageTypeEnum.MOVE) {
-            ctx.sendToDst(ArrayBuffer(actiondst))
-          }
-
-          else {
-            ctx.sendToSrc(ArrayBuffer(actiondst))
-          }
-        }
+      if (v._2.monster.isInstanceOf[Serializable with Monster with Angel]) {
+        acc1.add(1)
       }
     }
-  }
-
-  def MergeActions(msg1: ArrayBuffer[Message], msg2: ArrayBuffer[Message]): ArrayBuffer[Message] = {
-    msg1 ++ msg2
   }
 
   def ChooseAction2(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
-    if(sommet.monster.getClass.getSimpleName!="Dragon"){
+    sommet.monster.action.clear()
+    if (sommet.monster.getClass.getSimpleName != "Dragon") {
       var meleeTargets = ArrayBuffer[Message]()
       var rangedTargets = ArrayBuffer[Message]()
       var moveTargets = ArrayBuffer[Message]()
@@ -285,7 +208,7 @@ object mainex2 {
         continueOnSameTarget = true
       }
 
-      if (sommet.monster.action.isEmpty) {
+      if (sommet.monster.action.isEmpty && moveTargets.nonEmpty) {
         sommet.monster.action = ArrayBuffer(moveTargets(0))
         for (move <- moveTargets) {
           if (sommet.monster.getDistance(sommet.monster.action(0).dest) < sommet.monster.getDistance(move.dest)) {
@@ -294,12 +217,137 @@ object mainex2 {
         }
       }
 
-    }else{
+    } else {
       val res = sommet.monster.IA(message)
-      sommet.monster.action=res
+      sommet.monster.action = res
     }
 
     new node(sommet.id, sommet.monster)
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    val sc = new SparkContext(Conf)
+    sc.setLogLevel("ERROR")
+    //combat1(sc)
+    combat2(sc)
+    sc.stop()
+
+
+  }
+
+  def sendActions(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
+
+    if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
+      if (ctx.attr.getRelation == RelationType.ENEMY) {
+        val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
+        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
+        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
+        ctx.sendToSrc(ArrayBuffer(message1))
+        ctx.sendToDst(ArrayBuffer(message2))
+      }
+      else {
+        if (ctx.srcAttr.monster.shouldHeal(ctx.dstAttr.monster)) {
+          val message = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, MessageTypeEnum.HEAL)
+          ctx.sendToSrc(ArrayBuffer(message))
+        }
+      }
+
+    }
+  }
+
+
+  def sendActionsToApply(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
+    if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
+      for (action <- ctx.srcAttr.monster.action) {
+        if (ctx.dstAttr.id == action.dstid) {
+          if (action.typem == MessageTypeEnum.MOVE) {
+            ctx.sendToSrc(ArrayBuffer(action))
+          }
+
+          else {
+            ctx.sendToDst(ArrayBuffer(action))
+          }
+        }
+      }
+      for (actiondst <- ctx.dstAttr.monster.action) {
+        if (ctx.srcAttr.id == actiondst.dstid) {
+          if (actiondst.typem == MessageTypeEnum.MOVE) {
+            ctx.sendToDst(ArrayBuffer(actiondst))
+          }
+
+          else {
+            ctx.sendToSrc(ArrayBuffer(actiondst))
+          }
+        }
+      }
+    }
+  }
+
+  def MergeActions(msg1: ArrayBuffer[Message], msg2: ArrayBuffer[Message]): ArrayBuffer[Message] = {
+    msg1 ++ msg2
+  }
+
+  def combat2(sc: SparkContext): Unit = {
+    println("---------------------------------COMBAT 2--------------------")
+    angelCount = 10L
+    enemyCount = 211L
+    var myVertices2Buffer = ArrayBuffer(
+      (1L, new node(1, new Solar(0, 0))),
+      (2L, new node(2, new Planetar(0, 10))),
+      (3L, new node(3, new Planetar(0, 5))),
+      (4L, new node(4, new MovanicDeva(5, 5))),
+      (5L, new node(5, new MovanicDeva(0, -5))),
+      (6L, new node(6, new Astral(5, -5))),
+      (7L, new node(7, new Astral(5, -6))),
+      (8L, new node(8, new Astral(5, 7))),
+      (9L, new node(9, new Astral(-5, -8))),
+      (10L, new node(10, new Astral(-5, -4))),
+      (11L, new node(11, new Dragon(200, 200))),
+      (12L, new node(12, new AngelSlayer(110, 110))),
+      (13L, new node(13, new AngelSlayer(115, 110))),
+      (14L, new node(14, new AngelSlayer(110, 115))),
+      (15L, new node(15, new AngelSlayer(115, 115))),
+      (16L, new node(16, new AngelSlayer(120, 110))),
+      (17L, new node(17, new AngelSlayer(110, 120))),
+      (18L, new node(18, new AngelSlayer(120, 120))),
+      (19L, new node(19, new AngelSlayer(125, 110))),
+      (20L, new node(20, new AngelSlayer(110, 125))),
+      (21L, new node(21, new AngelSlayer(125, 125)))
+    )
+    val startIndex = 22L
+    for (i <- 0 until 200) {
+      myVertices2Buffer.+=((startIndex + i, new node(startIndex.toInt + i, new BarbarianOrc(110, -100 + i))))
+    }
+    val myVertices2 = sc.makeRDD(myVertices2Buffer)
+    var myEdges2Buffer: ArrayBuffer[Edge[EdgeProperty]] = ArrayBuffer()
+    for (i <- myVertices2Buffer.indices) {
+      for (j <- i until myVertices2Buffer.size) {
+        var node1 = myVertices2Buffer(i)
+        var node2 = myVertices2Buffer(j)
+        (node1._2.monster, node2._2.monster) match {
+          case (_: Serializable with Monster with Angel, _: Serializable with Monster with Angel) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
+          case (_: Serializable with Monster with Angel, _: Serializable with Monster with Ennemy) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.ENEMY)))
+          case (_: Dragon, _: AngelSlayer) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
+          case _ =>
+        }
+
+      }
+    }
+    val myEdges2 = sc.makeRDD(myEdges2Buffer)
+    val myGraph2 = Graph(myVertices2, myEdges2)
+    //val edges = myGraph2.edges.collect()
+    //println(edges)
+    var res2 = execute(myGraph2, sc).vertices.collect()
+    println("ETAT APRES LE COMBAT")
+    //println(res)
+    res2 = res2.filter(tuple => tuple._2.monster.HP > 0)
+    println("SURVIVANTS")
+    for (t <- res2) {
+      println(t._2.monster.getClass.getSimpleName + " " + t._2.id + " HP: " + t._2.monster.HP)
+    }
+    println("--------------------------------- FIN COMBAT 2--------------------")
+
   }
 
   def ApplyAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {

@@ -12,7 +12,7 @@ class BarbarianOrc(x: Double, y: Double) extends Serializable with Monster with 
   override var damageMelee: Damage = Damage(1, 8, 10)
 
   MeleeAtckCount = 3
-  RangedAtckCount = 3
+  RangedAtckCount = 0
 
   MeleeAtckChance = List(19, 14, 9).map(_ + 1)
   RangedAtckChance = List(16, 11, 6)
@@ -20,9 +20,9 @@ class BarbarianOrc(x: Double, y: Double) extends Serializable with Monster with 
   override var position: Position = new Position(x, y)
 
   override def action(distance: Double): MessageTypeEnum = {
-    if ((distance <= 50) && (distance > 0))
-      ListAction(2)
-    else if (distance == 0)
+    //if ((distance <= 50) && (distance > 0))
+    // ListAction(2)
+    if (distance == 0)
       ListAction.head
     else
       ListAction(1)

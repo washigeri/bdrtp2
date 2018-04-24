@@ -24,11 +24,11 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
   alterself = true
 
   override def action(distance: Double): MessageTypeEnum = {
-    if (distance == 0 && !flying) {
-      ListAction(1)
+    if (!flying && distance == 0) {
+      return ListAction(1)
     }
-    else if (distance > 0 && flying && distance <= 70) {
-      ListAction(2)
+    else if (flying && distance <= 70) {
+      return ListAction(2)
     }
     ListAction.head
   }
