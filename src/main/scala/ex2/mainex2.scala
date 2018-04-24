@@ -121,7 +121,7 @@ object mainex2 {
     myGraph
   }
 
-  def incrementAccs(v: (VertexId, node), acc1: LongAccumulator, acc2: LongAccumulator) = {
+  def incrementAccs(v: (VertexId, node), acc1: LongAccumulator, acc2: LongAccumulator): Unit = {
     if (v._2.monster.HP <= 0) {
       if (v._2.monster.isInstanceOf[Serializable with Monster with Ennemy]) {
         acc2.add(1L)
@@ -323,8 +323,8 @@ object mainex2 {
     var myEdges2Buffer: ArrayBuffer[Edge[EdgeProperty]] = ArrayBuffer()
     for (i <- myVertices2Buffer.indices) {
       for (j <- i until myVertices2Buffer.size) {
-        var node1 = myVertices2Buffer(i)
-        var node2 = myVertices2Buffer(j)
+        val node1 = myVertices2Buffer(i)
+        val node2 = myVertices2Buffer(j)
         (node1._2.monster, node2._2.monster) match {
           case (_: Serializable with Monster with Angel, _: Serializable with Monster with Angel) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.FRIEND)))
           case (_: Serializable with Monster with Angel, _: Serializable with Monster with Ennemy) => myEdges2Buffer.+=(Edge(node1._1, node2._1, EdgeProperty(RelationType.ENEMY)))
