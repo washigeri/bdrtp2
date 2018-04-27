@@ -14,8 +14,9 @@ object mainex3 {
   def main(args: Array[String]): Unit = {
     val sc = new SparkContext(Conf)
     val text=sc.textFile("log.txt");
-    val rdd1 = text.map(line=>line.split(" "));
-    val rdd2 = text.flatMap(line=>line.split(" "));
+    val res3=text.collect();
+    val rdd1 = text.map(line=>line.split(" "))
+    val rdd2 = text.flatMap(line=>line.split(" ")).map(word=>(word.toLowerCase(),1)).reduceByKey(_+_);
 
     val res=rdd1.collect();
     val res2=rdd2.collect();

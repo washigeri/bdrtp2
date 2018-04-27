@@ -11,7 +11,7 @@ import scala.util.Random
 
 object mainex2 {
 
-  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("local[*]")
+  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("spark://172.19.134.29:7077")
 
   def main(args: Array[String]): Unit = {
 
@@ -127,6 +127,9 @@ object mainex2 {
       while (true) {
         println("---------------------------------DEBUT DU TOUR--------------------")
         println("Tour " + counter)
+        if(counter==13){
+          println("test")
+        }
         counter += 1
         val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
         if (messages.isEmpty()) {
