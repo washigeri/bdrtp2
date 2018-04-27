@@ -20,15 +20,15 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
   RangedAtckCount = 3
   RangedAtckChance = List(31, 31, 31)
   MeleeAtckChance = List(33)
-   flying = false
-   alterself = true
+  flying = false
+  alterself = true
 
   override def action(distance: Double): MessageTypeEnum = {
-    if (distance == 0 && !flying) {
-      ListAction(1)
+    if (!flying && distance == 0) {
+      return ListAction(1)
     }
-    else if (distance > 0 && flying && distance <= 70) {
-      ListAction(2)
+    else if (flying && distance <= 70) {
+      return ListAction(2)
     }
     ListAction.head
   }
@@ -37,7 +37,7 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
     var actionBuffer = ArrayBuffer[Message]()
     var actionBufferRanged = ArrayBuffer[Message]()
     for(action <- messages){
-      if(alterself==true){
+      if (alterself) {
 
         if(action.dstid==1 && action.typem==MessageTypeEnum.MOVE){
           actionBuffer.+=(action)
@@ -66,10 +66,10 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
       }
 
     }
-    if(actionBufferRanged.size<=3 && actionBufferRanged.size>0){
+    if (actionBufferRanged.size <= 3 && actionBufferRanged.nonEmpty) {
       return actionBufferRanged
     }
-    actionBuffer;
+    actionBuffer
 
   }
 

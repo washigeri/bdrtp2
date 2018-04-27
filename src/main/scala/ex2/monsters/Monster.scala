@@ -28,6 +28,7 @@ trait Monster {
   var flying=false
   var action: ArrayBuffer[Message] = ArrayBuffer[Message]()
 
+
   def shouldHeal(target: Monster): Boolean = {
     canHeal && target.HP < 0.25 * target.maxHp
   }
