@@ -57,7 +57,7 @@ object mainex2 {
 
 
     println("---------------------------------COMBAT 1--------------------")
-    val myGraph = Graph(myVertices, myEdges)
+    val myGraph = Graph(myVertices, myEdges).cache()
     var res = execute(myGraph, sc).vertices.collect()
     println("ETAT APRES LE COMBAT")
     //println(res)
@@ -108,11 +108,13 @@ object mainex2 {
         //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Ennemy] && v._2.monster.HP <= 0).foreach(_ => enemyAccum.add(1))
         //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Angel] && v._2.monster.HP <= 0).foreach(_ => angelAccum.add(1))
         myGraph.vertices.foreach(v => incrementAccs(v, angelAccum, enemyAccum))
-        myGraph = myGraph.subgraph(vpred = (_, attr) => attr.monster.HP > 0)
+        //myGraph = myGraph.subgraph(vpred = (_, attr) => attr.monster.HP > 0)
         if (angelAccum.value == angelCount || enemyAccum.value == enemyCount) {
           println("---------------------------------FIN--------------------")
           return
         }
+        angelAccum.reset()
+        enemyAccum.reset()
 
       }
     }
@@ -335,7 +337,7 @@ object mainex2 {
       }
     }
     val myEdges2 = sc.makeRDD(myEdges2Buffer)
-    val myGraph2 = Graph(myVertices2, myEdges2)
+    val myGraph2 = Graph(myVertices2, myEdges2).cache()
     //val edges = myGraph2.edges.collect()
     //println(edges)
     var res2 = execute(myGraph2, sc).vertices.collect()
