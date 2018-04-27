@@ -14,7 +14,7 @@ import scala.util.Random
 
 object mainex2 {
 
-  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("spark://172.19.134.29:7077")
+  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("local[*]")
 
   var angelCount = 1L
   var enemyCount = 15L
@@ -111,13 +111,14 @@ object mainex2 {
         //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Ennemy] && v._2.monster.HP <= 0).foreach(_ => enemyAccum.add(1))
         //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Angel] && v._2.monster.HP <= 0).foreach(_ => angelAccum.add(1))
         myGraph.vertices.foreach(v => incrementAccs(v, angelAccum, enemyAccum))
-        //myGraph = myGraph.subgraph(vpred = (_, attr) => attr.monster.HP > 0)
+        myGraph = myGraph.subgraph(vpred = (_, attr) => attr.monster.HP > 0)
+        myGraph.checkpoint()
         if (angelAccum.value == angelCount || enemyAccum.value == enemyCount) {
           println("---------------------------------FIN--------------------")
           return
         }
-        angelAccum.reset()
-        enemyAccum.reset()
+       // angelAccum.reset()
+        //enemyAccum.reset()
 
       }
     }
@@ -233,6 +234,7 @@ object mainex2 {
   def main(args: Array[String]): Unit = {
 
     val sc = new SparkContext(Conf)
+    sc.setCheckpointDir("/RDDCheckpoint")
     sc.setLogLevel("ERROR")
     //combat1(sc)
     combat2(sc)
