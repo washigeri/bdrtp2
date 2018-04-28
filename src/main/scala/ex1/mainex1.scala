@@ -10,8 +10,6 @@ import net.ruippeixotog.scalascraper.model._
 import org.apache.commons.io.FileUtils
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.collection.mutable.ListBuffer
-
 
 object mainex1 {
 
@@ -24,21 +22,22 @@ object mainex1 {
   val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex1").setMaster("local[*]")
 
   def main(args: Array[String]): Unit = {
-    val res = BuildURLList()
-    var listCreature: ListBuffer[creature] = ListBuffer()
-    for (k <- res.indices) {
-      listCreature += getSortByURL(res(k))
-    }
     val sc = new SparkContext(Conf)
     sc.setLogLevel("ERROR")
-    val distMonsters = sc.parallelize(listCreature)
-    val pairs = distMonsters.flatMap(c => c.listspell.map(s => (s, c.name))).groupByKey()
+    println("Fetching Monsters list...")
+    val res = sc.parallelize(BuildURLList())
+    println("Monsters retrived : " + res.count())
+    println("Fetching spells for monsters...")
+    val distMonsters = res.map(u => getSortByURL(u))
+    var pairs = distMonsters.flatMap(c => c.listspell.map(s => (s, c.name))).groupByKey()
     val resultExists = Files.exists(Paths.get("./results"))
     if (resultExists) {
       DeleteDirectory("results")
     }
+    pairs = pairs.coalesce(1)
+    println("Spells fetched !")
     pairs.saveAsTextFile("results")
-
+    sc.stop()
   }
 
   def BuildURLList(): List[String] = {

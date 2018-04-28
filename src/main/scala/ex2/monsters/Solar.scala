@@ -15,6 +15,7 @@ class Solar(x: Double, y: Double) extends Serializable with Monster with Angel {
   override var damageMelee: Damage = Damage(3, 6, 18)
   DamageReduction = 15
   canHeal = true
+  massHeal = true
   MeleeAtckCount = 4
   RangedAtckCount = 4
   MeleeAtckChance = List(35, 30, 25, 20).map(_ + 5)
@@ -22,6 +23,7 @@ class Solar(x: Double, y: Double) extends Serializable with Monster with Angel {
   override var damageRanged: Damage = Damage(2, 6, 14)
   override var position: Position = new Position(x, y)
   healPower = 50 * 3
+  override var maxHp: Int = 363
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
@@ -35,7 +37,5 @@ class Solar(x: Double, y: Double) extends Serializable with Monster with Angel {
 
     ListAction.head
   }
-
-  override var maxHp: Int = 363
 
 }

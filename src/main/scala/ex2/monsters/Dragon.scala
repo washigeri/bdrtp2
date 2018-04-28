@@ -36,30 +36,30 @@ class Dragon(x: Double, y: Double) extends Serializable with Monster with Ennemy
   override def IA(messages: ArrayBuffer[Message]): ArrayBuffer[Message] = {
     var actionBuffer = ArrayBuffer[Message]()
     var actionBufferRanged = ArrayBuffer[Message]()
-    for(action <- messages){
+    for (action <- messages) {
       if (alterself) {
 
-        if(action.dstid==1 && action.typem==MessageTypeEnum.MOVE){
+        if (action.dstid == 1 && action.typem == MessageTypeEnum.MOVE) {
           actionBuffer.+=(action)
         }
-        if(action.dstid==1 && action.typem==MessageTypeEnum.MELEE){
-          if(Random.nextInt(20)+MeleeAtckChance.head>=action.dest.Armor){
-            action.value=this.damageMelee.roll()
-          }else{
-            action.value=0
+        if (action.dstid == 1 && action.typem == MessageTypeEnum.MELEE) {
+          if (Random.nextInt(20) + MeleeAtckChance.head >= action.dest.Armor) {
+            action.value = this.damageMelee.roll()
+          } else {
+            action.value = 0
           }
 
-          alterself=false
+          alterself = false
           actionBuffer = ArrayBuffer[Message](action)
-          flying=true
+          flying = true
         }
 
-      }else{
-        if(flying && action.typem==MessageTypeEnum.RANGED && actionBufferRanged.size<3){
-          if(Random.nextInt(20)+RangedAtckChance.head>=action.dest.Armor){
-            action.value=this.damageRanged.roll()
-          }else{
-            action.value=0
+      } else {
+        if (flying && action.typem == MessageTypeEnum.RANGED && actionBufferRanged.size < 3) {
+          if (Random.nextInt(20) + RangedAtckChance.head >= action.dest.Armor) {
+            action.value = this.damageRanged.roll()
+          } else {
+            action.value = 0
           }
           actionBufferRanged.+=(action)
         }

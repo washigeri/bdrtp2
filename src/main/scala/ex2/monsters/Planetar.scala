@@ -17,11 +17,12 @@ class Planetar(x: Double, y: Double) extends Serializable with Monster with Ange
   canHeal = true
   MeleeAtckCount = 3
   RangedAtckCount = 0
-  MeleeAtckChance = List(27,22,17 ).map(_ + 3)
+  MeleeAtckChance = List(27, 22, 17).map(_ + 3)
 
   override var damageRanged: Damage = Damage(2, 6, 14)
   override var position: Position = new Position(x, y)
   healPower = 50 * 3
+  override var maxHp: Int = 229
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
@@ -29,10 +30,7 @@ class Planetar(x: Double, y: Double) extends Serializable with Monster with Ange
     }
 
 
-
     ListAction.head
   }
-
-  override var maxHp: Int = 229
 
 }

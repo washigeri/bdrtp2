@@ -16,6 +16,7 @@ class Worgrider(x: Double, y: Double) extends Serializable with Monster with Enn
   RangedAtckCount = 0
   override var damageRanged: Damage = _
   override var position: Position = new Position(x, y)
+  override var maxHp: Int = 13
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
@@ -24,6 +25,4 @@ class Worgrider(x: Double, y: Double) extends Serializable with Monster with Enn
     else
       ListAction.head
   }
-
-  override var maxHp: Int = 13
 }

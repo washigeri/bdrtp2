@@ -17,11 +17,12 @@ class AngelSlayer(x: Double, y: Double) extends Serializable with Monster with E
   canHeal = true
   MeleeAtckCount = 3
   RangedAtckCount = 3
-  MeleeAtckChance = List(21, 16,11).map(_ + 1)
-  RangedAtckChance = List( 21, 16,11).map(_ + 0)
+  MeleeAtckChance = List(21, 16, 11).map(_ + 1)
+  RangedAtckChance = List(21, 16, 11).map(_ + 0)
   override var damageRanged: Damage = Damage(1, 8, 6)
   override var position: Position = new Position(x, y)
   healPower = 50 * 3
+  override var maxHp: Int = 112
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
@@ -35,7 +36,5 @@ class AngelSlayer(x: Double, y: Double) extends Serializable with Monster with E
 
     ListAction.head
   }
-
-  override var maxHp: Int = 112
 
 }

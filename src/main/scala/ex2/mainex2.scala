@@ -14,7 +14,9 @@ import scala.util.Random
 
 object mainex2 {
 
-  val Conf: SparkConf = new SparkConf().setAppName("BDRTP2ex2").setMaster("local[*]")
+  val Conf: SparkConf = new SparkConf().set("spark.cleaner.referenceTracking.cleanCheckpoints", "true")
+    .setAppName("BDRTP2ex2")
+    .setMaster("local[*]")
 
   var angelCount = 1L
   var enemyCount = 15L
@@ -57,10 +59,9 @@ object mainex2 {
 
 
     println("---------------------------------COMBAT 1--------------------")
-    val myGraph = Graph(myVertices, myEdges).cache()
+    val myGraph = Graph(myVertices, myEdges)
     var res = execute(myGraph, sc).vertices.collect()
     println("ETAT APRES LE COMBAT")
-    //println(res)
     res = res.filter(tuple => tuple._2.monster.HP > 0)
     println("SURVIVANTS")
     for (t <- res) {
@@ -80,23 +81,13 @@ object mainex2 {
       while (true) {
         println("---------------------------------DEBUT DU TOUR--------------------")
         println("Tour " + counter)
-        if(counter==13){
-          println("test")
-        }
         counter += 1
         val messages = myGraph.aggregateMessages[ArrayBuffer[Message]](sendActions, MergeActions)
-        //if (messages.isEmpty()) {
-
-        // println("---------------------------------FIN--------------------")
-        // return
-        // }
-
 
         myGraph = myGraph.joinVertices(messages)(
           (vid, sommet, message) => ChooseAction2(vid, sommet, message)
 
         )
-        //myGraph.vertices.count()
 
         val messages2 = myGraph.aggregateMessages[ArrayBuffer[Message]](
           sendActionsToApply,
@@ -106,10 +97,7 @@ object mainex2 {
         myGraph = myGraph.joinVertices(messages2)(
           (vid, sommet, message) => ApplyAction(vid, sommet, message)
         )
-        //       myGraph.vertices.count()
 
-        //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Ennemy] && v._2.monster.HP <= 0).foreach(_ => enemyAccum.add(1))
-        //myGraph.vertices.filter(v => v._2.monster.isInstanceOf[Serializable with Monster with Angel] && v._2.monster.HP <= 0).foreach(_ => angelAccum.add(1))
         myGraph.vertices.foreach(v => incrementAccs(v, angelAccum, enemyAccum))
         myGraph = myGraph.subgraph(vpred = (_, attr) => attr.monster.HP > 0)
         myGraph.checkpoint()
@@ -117,9 +105,6 @@ object mainex2 {
           println("---------------------------------FIN--------------------")
           return
         }
-       // angelAccum.reset()
-        //enemyAccum.reset()
-
       }
     }
 
@@ -154,14 +139,21 @@ object mainex2 {
         }
       }
       if (healTargets.nonEmpty) {
-        if (healTargets.size == 1) {
-          healTargets(0).value = sommet.monster.healPower
-          sommet.monster.action = ArrayBuffer(healTargets(0))
+        if (healTargets.size <= 2) {
+          val sorted = healTargets.sortBy(m => m.dest.HP)
+          sommet.monster.action = ArrayBuffer(sorted(0).copy(value = sommet.monster.healPower))
 
         } else {
-          healTargets.foreach(_.value = sommet.monster.healPower)
-          sommet.monster.action = healTargets
-          return new node(sommet.id, sommet.monster)
+          if (sommet.monster.massHeal) {
+            healTargets.foreach(_.value = sommet.monster.healPower)
+            sommet.monster.action = healTargets
+            sommet.monster.massHeal = false
+            return new node(sommet.id, sommet.monster)
+          }
+          else {
+            val sorted = healTargets.sortBy(m => m.dest.HP)
+            sommet.monster.action = ArrayBuffer(sorted(0).copy(value = sommet.monster.healPower))
+          }
         }
 
       }
@@ -231,18 +223,6 @@ object mainex2 {
     new node(sommet.id, sommet.monster)
   }
 
-  def main(args: Array[String]): Unit = {
-
-    val sc = new SparkContext(Conf)
-    sc.setCheckpointDir("/RDDCheckpoint")
-    sc.setLogLevel("ERROR")
-    //combat1(sc)
-    combat2(sc)
-    sc.stop()
-
-
-  }
-
   def sendActions(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
 
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
@@ -262,7 +242,6 @@ object mainex2 {
 
     }
   }
-
 
   def sendActionsToApply(ctx: EdgeContext[node, EdgeProperty, ArrayBuffer[Message]]): Unit = {
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
@@ -293,6 +272,46 @@ object mainex2 {
 
   def MergeActions(msg1: ArrayBuffer[Message], msg2: ArrayBuffer[Message]): ArrayBuffer[Message] = {
     msg1 ++ msg2
+  }
+
+  def ApplyAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
+    val monster: Monster = sommet.monster
+
+    for (action <- message) {
+      action.typem match {
+        case MessageTypeEnum.MOVE => monster.move(action.dest); println(monster.getClass.getSimpleName + sommet.id + " avance vers " + action.dest.getClass.getSimpleName + action.dstid)
+        case MessageTypeEnum.HEAL => monster.HP = min(monster.maxHp, monster.HP + action.value); println(action.source.getClass.getSimpleName + action.srcid + " soigne " + monster.getClass.getSimpleName + sommet.id + " de " + action.value + " PVs")
+        case _ =>
+          if (action.value == 0) {
+            println(monster.getClass.getSimpleName + sommet.id + " ESQUIVE l'attaque " + action.typem + " de " + action.source.getClass.getSimpleName + action.srcid)
+          } else {
+            monster.removeHP(action.value)
+            println(monster.getClass.getSimpleName + sommet.id + " se fait attaquer a " + action.typem + " de " + action.source.getClass.getSimpleName + " pour " + action.value + " points de degats")
+          }
+      }
+    }
+    if (sommet.monster.HP > 0 && sommet.monster.HP < sommet.monster.maxHp) {
+      monster.HP = min(sommet.monster.maxHp, monster.Regeneration + monster.HP)
+    }
+    if (sommet.monster.HP <= 0) {
+      println("---------------------------------MONSTER--------------------")
+      println(monster.getClass.getSimpleName + " " + sommet.id + " " + "est mort")
+      println("---------------------------------MONSTER--------------------")
+    }
+    monster.action = ArrayBuffer[Message]()
+    new node(sommet.id, monster)
+  }
+
+  def main(args: Array[String]): Unit = {
+
+    val sc = new SparkContext(Conf)
+    sc.setCheckpointDir("./RDDCheckpoint")
+    sc.setLogLevel("ERROR")
+    //combat1(sc)
+    combat2(sc)
+    sc.stop()
+
+
   }
 
   def combat2(sc: SparkContext): Unit = {
@@ -342,7 +361,7 @@ object mainex2 {
       }
     }
     val myEdges2 = sc.makeRDD(myEdges2Buffer)
-    val myGraph2 = Graph(myVertices2, myEdges2).cache()
+    val myGraph2 = Graph(myVertices2, myEdges2)
     //val edges = myGraph2.edges.collect()
     //println(edges)
     var res2 = execute(myGraph2, sc).vertices.collect()
@@ -355,34 +374,6 @@ object mainex2 {
     }
     println("--------------------------------- FIN COMBAT 2--------------------")
 
-  }
-
-  def ApplyAction(vid: VertexId, sommet: node, message: ArrayBuffer[Message]): node = {
-    val monster: Monster = sommet.monster
-
-    for (action <- message) {
-      action.typem match {
-        case MessageTypeEnum.MOVE => monster.move(action.dest); println(monster.getClass.getSimpleName + sommet.id + " avance vers " + action.dest.getClass.getSimpleName + action.dstid)
-        case MessageTypeEnum.HEAL => monster.HP = min(monster.maxHp, monster.HP + action.value); println(action.source.getClass.getSimpleName + action.srcid + " soigne " + monster.getClass.getSimpleName + sommet.id + " de " + action.value + " PVs")
-        case _ =>
-          if (action.value == 0) {
-            println(monster.getClass.getSimpleName + sommet.id + " ESQUIVE l'attaque " + action.typem + " de " + action.source.getClass.getSimpleName + action.srcid)
-          } else {
-            monster.removeHP(action.value)
-            println(monster.getClass.getSimpleName + sommet.id + " se fait attaquer a " + action.typem + " de " + action.source.getClass.getSimpleName + " pour " + action.value + " points de degats")
-          }
-      }
-    }
-    if (sommet.monster.HP > 0 && sommet.monster.HP < sommet.monster.maxHp) {
-      monster.HP = min(sommet.monster.maxHp, monster.Regeneration + monster.HP)
-    }
-    if (sommet.monster.HP <= 0) {
-      println("---------------------------------MONSTER--------------------")
-      println(monster.getClass.getSimpleName + " " + sommet.id + " " + "est mort")
-      println("---------------------------------MONSTER--------------------")
-    }
-    monster.action = ArrayBuffer[Message]()
-    new node(sommet.id, monster)
   }
 
 }

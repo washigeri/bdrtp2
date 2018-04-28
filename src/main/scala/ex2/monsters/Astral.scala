@@ -17,11 +17,12 @@ class Astral(x: Double, y: Double) extends Serializable with Monster with Angel 
   canHeal = true
   MeleeAtckCount = 3
   RangedAtckCount = 0
-  MeleeAtckChance = List(26,21,16 ).map(_ + 2)
+  MeleeAtckChance = List(26, 21, 16).map(_ + 2)
 
   override var damageRanged: Damage = Damage(2, 6, 14)
   override var position: Position = new Position(x, y)
   healPower = 50 * 3
+  override var maxHp: Int = 172
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
@@ -29,10 +30,7 @@ class Astral(x: Double, y: Double) extends Serializable with Monster with Angel 
     }
 
 
-
     ListAction.head
   }
-
-  override var maxHp: Int = 172
 
 }

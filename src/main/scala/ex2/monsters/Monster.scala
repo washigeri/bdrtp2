@@ -13,7 +13,7 @@ trait Monster {
   var ListAction: List[MessageTypeEnum]
   var Speed: Int
   var Regeneration: Int = 0
-  var maxHp:Int
+  var maxHp: Int
   var DamageReduction: Int = 0
   var MeleeAtckCount: Int = 0
   var RangedAtckCount: Int = 0
@@ -23,9 +23,10 @@ trait Monster {
   var damageRanged: Damage
   var position: Position
   var canHeal: Boolean = false
+  var massHeal: Boolean = false
   var healPower: Int = 0
-  var alterself=false
-  var flying=false
+  var alterself = false
+  var flying = false
   var action: ArrayBuffer[Message] = ArrayBuffer[Message]()
 
 
@@ -66,11 +67,12 @@ trait Monster {
   def removeHP(damage: Int): Unit = {
     this.HP -= max(0, damage - DamageReduction)
   }
+
   def IA(messages: ArrayBuffer[Message]): ArrayBuffer[Message] = {
     ArrayBuffer[Message]()
   }
 
-  case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable{
+  case class Damage(nbdice: Int, diceSize: Int, baseDmg: Int) extends Serializable {
 
     def roll(): Int = {
 

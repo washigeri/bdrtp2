@@ -17,6 +17,7 @@ class Warlord(x: Double, y: Double) extends Serializable with Monster with Ennem
   MeleeAtckChance = List(20, 15, 10).map(_ + 1)
   override var damageRanged: Damage = _
   override var position: Position = new Position(x, y)
+  override var maxHp: Int = 141
 
   override def action(distance: Double): MessageTypeEnum = {
     if (distance == 0) {
@@ -26,6 +27,4 @@ class Warlord(x: Double, y: Double) extends Serializable with Monster with Ennem
       ListAction.head
     }
   }
-
-  override var maxHp: Int = 141
 }
