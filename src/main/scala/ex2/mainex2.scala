@@ -167,19 +167,22 @@ object mainex2 {
       for (melee <- meleeTargets if mcount < sommet.monster.MeleeAtckCount if atkCount < maxAttacks) {
         hp = melee.dest.HP
         for (i <- 0 until sommet.monster.MeleeAtckCount if continueOnSameTarget) {
-          damage = 0
-          if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(i) >= melee.dest.Armor) {
-            damage = sommet.monster.damageMelee.roll()
-            melee.value = damage
-            hp -= damage
-            continueOnSameTarget = hp > 0
-          }
-          else {
-            melee.value = 0
-          }
-          sommet.monster.action ++= ArrayBuffer(melee.copy(value = damage))
-          mcount += 1
-          atkCount += 1
+
+            damage = 0
+            if (Random.nextInt(20) + sommet.monster.MeleeAtckChance(i) >= melee.dest.Armor) {
+              damage = sommet.monster.damageMelee.roll()
+              melee.value = damage
+              hp -= damage
+              continueOnSameTarget = hp > 0
+            }
+            else {
+              melee.value = 0
+            }
+            sommet.monster.action ++= ArrayBuffer(melee.copy(value = damage))
+            mcount += 1
+            atkCount += 1
+
+
         }
         continueOnSameTarget = true
       }
@@ -228,8 +231,9 @@ object mainex2 {
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
       if (ctx.attr.getRelation == RelationType.ENEMY) {
         val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance))
-        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance))
+        val flying = ctx.dstAttr.monster.flying;
+        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance,flying))
+        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance,flying))
         ctx.sendToSrc(ArrayBuffer(message1))
         ctx.sendToDst(ArrayBuffer(message2))
       }
@@ -307,7 +311,7 @@ object mainex2 {
     val sc = new SparkContext(Conf)
     sc.setCheckpointDir("./RDDCheckpoint")
     sc.setLogLevel("ERROR")
-    //combat1(sc)
+    combat1(sc)
     combat2(sc)
     sc.stop()
 

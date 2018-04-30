@@ -24,8 +24,8 @@ class Planetar(x: Double, y: Double) extends Serializable with Monster with Ange
   healPower = 50 * 3
   override var maxHp: Int = 229
 
-  override def action(distance: Double): MessageTypeEnum = {
-    if (distance == 0) {
+  override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
+    if (distance == 0 && flying!=true) {
       return ListAction(1)
     }
 

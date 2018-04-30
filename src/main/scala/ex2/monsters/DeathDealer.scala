@@ -17,7 +17,7 @@ class DeathDealer(x: Double, y: Double) extends Serializable with Monster with E
   RangedAtckCount = 4
   RangedAtckChance = List(22, 17, 12, 7)
 
-  override def action(distance: Double): MessageTypeEnum = {
+  override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
     if (distance == 0) {
       ListAction(1)
     }

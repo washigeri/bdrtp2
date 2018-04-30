@@ -19,8 +19,8 @@ class MovanicDeva(x: Double, y: Double) extends Serializable with Monster with A
   RangedAtckCount = 0
   DamageReduction = 10
 
-  override def action(distance: Double): MessageTypeEnum = {
-    if (distance == 0) {
+  override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
+    if (distance == 0  && flying!=true) {
       return ListAction(1)
     }
     ListAction.head

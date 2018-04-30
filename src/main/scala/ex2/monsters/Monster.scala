@@ -38,7 +38,7 @@ trait Monster {
     healPower
   }
 
-  def action(distance: Double): MessageTypeEnum
+  def action(distance: Double,flying:Boolean): MessageTypeEnum
 
   def move(monster: Monster): Unit = {
     val distance = this.getDistance(monster)

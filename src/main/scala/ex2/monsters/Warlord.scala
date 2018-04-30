@@ -19,7 +19,7 @@ class Warlord(x: Double, y: Double) extends Serializable with Monster with Ennem
   override var position: Position = new Position(x, y)
   override var maxHp: Int = 141
 
-  override def action(distance: Double): MessageTypeEnum = {
+  override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
     if (distance == 0) {
       ListAction(2)
     }

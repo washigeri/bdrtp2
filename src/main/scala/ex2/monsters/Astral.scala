@@ -24,7 +24,7 @@ class Astral(x: Double, y: Double) extends Serializable with Monster with Angel 
   healPower = 50 * 3
   override var maxHp: Int = 172
 
-  override def action(distance: Double): MessageTypeEnum = {
+  override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
     if (distance == 0) {
       return ListAction(1)
     }

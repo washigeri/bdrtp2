@@ -20,7 +20,7 @@ class BarbarianOrc(x: Double, y: Double) extends Serializable with Monster with 
   override var position: Position = new Position(x, y)
   override var maxHp: Int = 142
 
-  override def action(distance: Double): MessageTypeEnum = {
+  override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
     //if ((distance <= 50) && (distance > 0))
     // ListAction(2)
     if (distance == 0)
