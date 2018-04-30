@@ -231,9 +231,10 @@ object mainex2 {
     if (ctx.dstAttr.monster.HP > 0 && ctx.srcAttr.monster.HP > 0) {
       if (ctx.attr.getRelation == RelationType.ENEMY) {
         val distance = ctx.srcAttr.monster.getDistance(ctx.dstAttr.monster)
-        val flying = ctx.dstAttr.monster.flying;
-        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance,flying))
-        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance,flying))
+        val flying1 = ctx.dstAttr.monster.flying
+        val flying2 = ctx.srcAttr.monster.flying
+        val message1 = Message(ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster.action(distance, flying1))
+        val message2 = Message(ctx.dstAttr.monster, ctx.dstAttr.id, ctx.srcAttr.monster, ctx.srcAttr.id, ctx.dstAttr.monster.action(distance, flying2))
         ctx.sendToSrc(ArrayBuffer(message1))
         ctx.sendToDst(ArrayBuffer(message2))
       }
