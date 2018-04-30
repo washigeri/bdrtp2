@@ -212,7 +212,7 @@ object mainex2 {
       if (sommet.monster.action.isEmpty && moveTargets.nonEmpty) {
         sommet.monster.action = ArrayBuffer(moveTargets(0))
         for (move <- moveTargets) {
-          if (sommet.monster.getDistance(sommet.monster.action(0).dest) < sommet.monster.getDistance(move.dest)) {
+          if (sommet.monster.getDistance(sommet.monster.action(0).dest) < sommet.monster.getDistance(move.dest) && !move.dest.flying) {
             sommet.monster.action = ArrayBuffer(move)
           }
         }

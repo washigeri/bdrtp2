@@ -26,7 +26,7 @@ class Solar(x: Double, y: Double) extends Serializable with Monster with Angel {
   override var maxHp: Int = 363
 
   override def action(distance: Double,flying:Boolean): MessageTypeEnum = {
-    if (distance == 0  && flying!=true ) {
+    if (distance == 0 && !flying) {
       return ListAction(2)
     }
     if (distance >= 0 && distance <= 110) {
